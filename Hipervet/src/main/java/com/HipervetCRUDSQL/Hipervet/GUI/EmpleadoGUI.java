@@ -241,13 +241,15 @@ public class EmpleadoGUI extends JPanel {
     }
 
     // Método para mostrar los resultados del reporte en una tabla
+    // Método para mostrar los resultados del reporte en una tabla
     private void mostrarResultadosReporte(List<String[]> resultados, JFrame reportesFrame) {
         if (resultados.isEmpty()) {
             JOptionPane.showMessageDialog(reportesFrame, "No se encontraron resultados.", "Información", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        String[] columnas = {"Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
+        // Agrega la columna "Código de Empleado" además de las ya existentes
+        String[] columnas = {"Código Empleado", "Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
         DefaultTableModel modeloReporte = new DefaultTableModel(columnas, 0);
 
         for (String[] resultado : resultados) {

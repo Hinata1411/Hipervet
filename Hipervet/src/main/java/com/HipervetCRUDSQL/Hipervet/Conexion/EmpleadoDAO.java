@@ -168,7 +168,8 @@ public class EmpleadoDAO extends Conexion {
 
     public List<String[]> obtenerGromistaMasEficiente(Date fechaInicio, Date fechaFin) {
         List<String[]> resultados = new ArrayList<>();
-        String sql = "SELECT TOP 1 CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+        String sql = "SELECT TOP 1 e.CodigoEmpleado, " +  // Incluye el código de empleado
+                "CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
                 "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')) AS NombreCompleto, " +
                 "p.Descripcion AS Puesto, AVG(DATEDIFF(MINUTE, dc.Inicio, dc.Fin) / 60.0) AS PromedioDuracionHoras " +
                 "FROM persona per " +
@@ -178,7 +179,7 @@ public class EmpleadoDAO extends Conexion {
                 "INNER JOIN cita c ON dc.NumeroCita = c.NumeroCita " +
                 "WHERE p.Descripcion = 'Groomista' " +
                 "AND dc.Inicio BETWEEN ? AND ? " +
-                "GROUP BY CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "GROUP BY e.CodigoEmpleado, CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
                 "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')), p.Descripcion " +
                 "ORDER BY PromedioDuracionHoras ASC";
 
@@ -190,10 +191,11 @@ public class EmpleadoDAO extends Conexion {
 
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
-                String[] resultado = new String[3];
-                resultado[0] = rs.getString("NombreCompleto");
-                resultado[1] = rs.getString("Puesto");
-                resultado[2] = String.valueOf(rs.getDouble("PromedioDuracionHoras"));
+                String[] resultado = new String[4];  // Aumentamos el tamaño a 4
+                resultado[0] = rs.getString("CodigoEmpleado");  // Incluye el código de empleado
+                resultado[1] = rs.getString("NombreCompleto");
+                resultado[2] = rs.getString("Puesto");
+                resultado[3] = String.valueOf(rs.getDouble("PromedioDuracionHoras"));
                 resultados.add(resultado);
             }
         } catch (SQLException e) {
@@ -202,5 +204,6 @@ public class EmpleadoDAO extends Conexion {
 
         return resultados;
     }
+
 
 }
