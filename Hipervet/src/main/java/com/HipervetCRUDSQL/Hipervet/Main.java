@@ -2,10 +2,8 @@ package com.HipervetCRUDSQL.Hipervet;
 
 
 import com.HipervetCRUDSQL.Hipervet.CRUDS.FichaMascotaCRUD;
-import com.HipervetCRUDSQL.Hipervet.CRUDS.ServicioCRUD;
-import com.HipervetCRUDSQL.Hipervet.GUI.LoginUI;
-import javafx.application.Application;
-import org.springframework.boot.SpringApplication;
+import com.HipervetCRUDSQL.Hipervet.GUI.LoginGUI;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 
@@ -13,6 +11,13 @@ import static javafx.application.Application.launch;
 
 public class Main {
 	public static void main(String[] args) {
+
+        // Crear y mostrar la ventana de login
+        SwingUtilities.invokeLater(() -> {
+            LoginGUI login = new LoginGUI();
+            login.setVisible(true);
+        });
+    }
 
 
 
@@ -22,9 +27,7 @@ public class Main {
                 personaCRUD.realizarCRUD();*/
 //		ServicioCRUD servicioCRUD = new ServicioCRUD();
 //		servicioCRUD.realizarCRUD();
-        FichaMascotaCRUD fichaMascotaCRUD = new FichaMascotaCRUD();
-        fichaMascotaCRUD.realizarCRUD();
+//        FichaMascotaCRUD fichaMascotaCRUD = new FichaMascotaCRUD();
+//        fichaMascotaCRUD.realizarCRUD();
 
-
-	}
 }

@@ -1,7 +1,5 @@
 package com.HipervetCRUDSQL.Hipervet.Conexion;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class Conexion {
     // Cambiar estos valores según tu configuración de la base de datos SQL Server
@@ -34,5 +32,20 @@ public class Conexion {
                 System.err.println("Error al cerrar la conexión: " + e.getMessage());
             }
         }
+    }
+
+    public static boolean verificarCredenciales(String nombreUsuario, String password) {
+        String sql = "SELECT COUNT(*) FROM Usuario WHERE nombreUsuario = ? AND password = ?";
+        try (PreparedStatement preparedStatement = obtenerConexion().prepareStatement(sql)) {
+            preparedStatement.setString(1, nombreUsuario);
+            preparedStatement.setString(2, password);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0; // Devuelve true si se encontró al menos un registro
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
