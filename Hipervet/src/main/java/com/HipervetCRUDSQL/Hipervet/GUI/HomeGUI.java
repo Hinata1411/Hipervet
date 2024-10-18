@@ -1,11 +1,15 @@
 package com.HipervetCRUDSQL.Hipervet.GUI;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class HomeGUI extends JFrame {
 
@@ -31,13 +35,11 @@ public class HomeGUI extends JFrame {
                 @Override
                 public void windowStateChanged(WindowEvent e) {
                     if (e.getNewState() == Frame.ICONIFIED) {
-                        // Cambiar el tamaño de la ventana a un tamaño promedio en lugar de minimizar por completo
                         setExtendedState(JFrame.NORMAL); // Evitar minimizar por completo
                         setSize(800, 600); // Tamaño promedio
                     }
                 }
             });
-
 
             // Crear el header (parte superior) para el buscador y los botones
             JPanel headerPanel = new JPanel(new BorderLayout());
@@ -120,12 +122,31 @@ public class HomeGUI extends JFrame {
             cardLayout = new CardLayout();
             contentPanel = new JPanel(cardLayout);
 
-            // Panel Home (puedes personalizarlo más)
-            JPanel homePanel = new JPanel();
-            homePanel.setBackground(Color.WHITE);
-            JLabel homeLabel = new JLabel("Bienvenido a la página principal", SwingConstants.CENTER);
-            homeLabel.setFont(new Font("Arial", Font.BOLD, 20));
-            homePanel.add(homeLabel);
+            // Panel Home (con imagen)
+            JPanel homePanel = new JPanel(new BorderLayout()) {
+                private Image image;
+
+                {
+                    try {
+                        // Cargar la imagen de la carpeta de recursos
+                        BufferedImage bufferedImage = ImageIO.read(new File("C:\\Users\\ASUS\\Desktop\\Hipervet\\Hipervet\\src\\main\\java\\com\\HipervetCRUDSQL\\Hipervet\\Resurces\\Hipervetimage.jpg"));
+                        image = bufferedImage;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    if (image != null) {
+                        // Escalar la imagen al tamaño del panel
+                        int width = getWidth();
+                        int height = getHeight();
+                        g.drawImage(image, 0, 0, width, height, this);
+                    }
+                }
+            };
 
             // Agregar el panel de inicio al contentPanel
             contentPanel.add(homePanel, "Home");
@@ -177,13 +198,11 @@ public class HomeGUI extends JFrame {
         // Método para cambiar entre modo claro y oscuro
         private void toggleTheme() {
             if (isDarkMode) {
-                // Cambiar a modo claro
                 sidebar.setBackground(new Color(173, 216, 230)); // Azul pastel
                 contentPanel.setBackground(Color.WHITE);
                 toggleThemeButton.setText("Modo Oscuro");
                 searchField.setBackground(Color.WHITE);
             } else {
-                // Cambiar a modo oscuro
                 sidebar.setBackground(new Color(51, 51, 51)); // Gris oscuro
                 contentPanel.setBackground(new Color(34, 34, 34)); // Gris más oscuro
                 toggleThemeButton.setText("Modo Claro");
