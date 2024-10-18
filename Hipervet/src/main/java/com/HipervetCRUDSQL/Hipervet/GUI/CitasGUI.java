@@ -3,8 +3,8 @@ package com.HipervetCRUDSQL.Hipervet.GUI;
 import javax.swing.*;
 import java.awt.*;
 
-public class ClienteGUI extends JPanel {
-    public ClienteGUI() {
+public class CitasGUI extends JPanel {
+    public CitasGUI() {
         setLayout(new BorderLayout());
 
         JLabel label = new JLabel("Bienvenido a la sección de Cliente", SwingConstants.CENTER);

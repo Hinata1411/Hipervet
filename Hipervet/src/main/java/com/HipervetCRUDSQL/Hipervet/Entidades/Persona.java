@@ -1,6 +1,6 @@
 package com.HipervetCRUDSQL.Hipervet.Entidades;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public class Persona {
     private int codigoPersona;
@@ -12,21 +12,11 @@ public class Persona {
     private String tercerApellido;
     private String tipoPersona;
     private String razonSocial;
-    private Date fechaNacimiento;
+    private LocalDate fechaNacimiento;
     private String genero;
 
     public Persona() {
-        this.codigoPersona = codigoPersona;
-        this.primerNombre = primerNombre;
-        this.segundoNombre = segundoNombre;
-        this.tercerNombre = tercerNombre;
-        this.primerApellido = primerApellido;
-        this.segundoApellido = segundoApellido;
-        this.tercerApellido = tercerApellido;
-        this.tipoPersona = tipoPersona;
-        this.razonSocial = razonSocial;
-        this.fechaNacimiento = fechaNacimiento;
-        this.genero = genero;
+        // Inicialización vacía si es necesario
     }
 
     public int getCodigoPersona() {
@@ -101,11 +91,11 @@ public class Persona {
         this.razonSocial = razonSocial;
     }
 
-    public Date getFechaNacimiento() {
+    public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }
 
-    public void setFechaNacimiento(Date fechaNacimiento) {
+    public void setFechaNacimiento(LocalDate fechaNacimiento) {
         this.fechaNacimiento = fechaNacimiento;
     }
 
@@ -115,20 +105,5 @@ public class Persona {
 
     public void setGenero(String genero) {
         this.genero = genero;
-    }
-
-    @Override
-    public String toString() {
-        return  "| Codigo= " + codigoPersona +
-                "| Primer Nombre= " + primerNombre + '\'' +
-                "| Segundo Nombre= " + segundoNombre + '\'' +
-                "| Tercer Nombre= " + tercerNombre + '\'' +
-                "| Primer Apellido= " + primerApellido + '\'' +
-                "| Segundo Apellido= " + segundoApellido + '\'' +
-                "| Tercer Apellido= " + tercerApellido + '\'' +
-                "| Tipo Persona= " + tipoPersona + '\'' +
-                "| Razon Social= " + razonSocial + '\'' +
-                "| Fecha Nacimiento= " + fechaNacimiento +
-                "| Genero= " + genero + '\'';
     }
 }

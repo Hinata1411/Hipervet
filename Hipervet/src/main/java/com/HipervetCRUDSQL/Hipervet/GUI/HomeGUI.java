@@ -91,13 +91,14 @@ public class HomeGUI extends JFrame {
         Font buttonFont = new Font("Arial", Font.PLAIN, 16);
 
         // Crear y añadir botones al sidebar con iconos
-        String[] options = {"Home", "Empleados", "Mascotas", "Clientes", "Diagnósticos"};
+        String[] options = {"Home", "Empleado", "Mascotas", "Citas", "Diagnósticos", "Persona"};
         String[] iconPaths = {
                 "src/icons/home.png",
                 "src/icons/person.png",
                 "src/icons/dog.png",
                 "src/icons/client-card.png",
-                "src/icons/stethoscope.png"
+                "src/icons/stethoscope.png",
+                "src/icons/person.png"
         };
 
         // Crear el panel de contenido con CardLayout
@@ -115,13 +116,16 @@ public class HomeGUI extends JFrame {
         contentPanel.add(homePanel, "Home");
 
         // Agregar el panel de empleados
-        contentPanel.add(new EmpleadoGUI(), "Empleados");
+        contentPanel.add(new EmpleadoGUI(), "Empleado");
+
+        // Agregar el panel de Persona
+        contentPanel.add(new PersonaGUI(), "Persona");
 
         // Agregar el panel de Mascotas
         contentPanel.add(new MascotaGUI(), "Mascotas");
 
         // Agregar el panel de clientes
-        contentPanel.add(new ClienteGUI(), "Clientes");
+        contentPanel.add(new CitasGUI(), "Citas");
 
         // Agregar el panel de Diagnosticos
         contentPanel.add(new DiagnosticGUI(), "Diagnósticos");
