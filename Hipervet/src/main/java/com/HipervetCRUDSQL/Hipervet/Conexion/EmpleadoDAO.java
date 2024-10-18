@@ -2,6 +2,9 @@ package com.HipervetCRUDSQL.Hipervet.Conexion;
 
 import com.HipervetCRUDSQL.Hipervet.Entidades.Empleado;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.Date;  // Para trabajar con fechas en el código en general
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -139,37 +142,65 @@ public class EmpleadoDAO extends Conexion {
 
             return puestos;
         }
-
-        // Método para obtener el gromista más eficiente entre las fechas proporcionadas
-        public List<String[]> obtenerGromistaMasEficiente(Date fechaInicio, Date fechaFin) {
-            List<String[]> resultados = new ArrayList<>();
-            String sql = "SELECT e.CodigoEmpleado, CONCAT(p.PrimerNombre, ' ', p.PrimerApellido) AS NombreCompleto, COUNT(c.CodigoCita) AS TotalCitas " +
-                    "FROM empleado e " +
-                    "JOIN cita c ON e.CodigoEmpleado = c.CodigoEmpleado " +
-                    "JOIN persona p ON e.CodigoPersona = p.CodigoPersona " +
-                    "WHERE e.CodigoPuesto = ? AND c.FechaCita BETWEEN ? AND ? " +  // Filtrar por gromista y fechas
-                    "GROUP BY e.CodigoEmpleado, p.PrimerNombre, p.PrimerApellido " +
-                    "ORDER BY TotalCitas DESC LIMIT 1";
-
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql)) {
-
-                statement.setInt(1, 2); // Suponiendo que el CódigoPuesto 2 es el de Gromista
-                statement.setDate(2, new java.sql.Date(fechaInicio.getTime()));
-                statement.setDate(3, new java.sql.Date(fechaFin.getTime()));
-                ResultSet rs = statement.executeQuery();
-
-                while (rs.next()) {
-                    String[] resultado = new String[3];
-                    resultado[0] = rs.getString("CodigoEmpleado");
-                    resultado[1] = rs.getString("NombreCompleto");
-                    resultado[2] = rs.getString("TotalCitas");
-                    resultados.add(resultado);
-                }
-            } catch (SQLException e) {
-                System.err.println("Error al obtener el gromista más eficiente: " + e.getMessage());
-            }
-
-            return resultados;
+    // Método para mostrar los resultados del reporte en una tabla
+    private void mostrarResultadosReporte(List<String[]> resultados, JFrame reportesFrame) {
+        if (resultados.isEmpty()) {
+            JOptionPane.showMessageDialog(reportesFrame, "No se encontraron resultados.", "Información", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+
+        String[] columnas = {"Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
+        DefaultTableModel modeloReporte = new DefaultTableModel(columnas, 0);
+
+        for (String[] resultado : resultados) {
+            modeloReporte.addRow(resultado);
+        }
+
+        JTable tablaResultados = new JTable(modeloReporte);
+        JScrollPane scrollPane = new JScrollPane(tablaResultados);
+
+        reportesFrame.add(scrollPane, BorderLayout.CENTER);
+        reportesFrame.revalidate();
+        reportesFrame.repaint();
+        reportesFrame.setSize(600, 400);
+    }
+
+
+    public List<String[]> obtenerGromistaMasEficiente(Date fechaInicio, Date fechaFin) {
+        List<String[]> resultados = new ArrayList<>();
+        String sql = "SELECT TOP 1 CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')) AS NombreCompleto, " +
+                "p.Descripcion AS Puesto, AVG(DATEDIFF(MINUTE, dc.Inicio, dc.Fin) / 60.0) AS PromedioDuracionHoras " +
+                "FROM persona per " +
+                "INNER JOIN empleado e ON per.CodigoPersona = e.CodigoPersona " +
+                "INNER JOIN puesto p ON e.CodigoPuesto = p.CodigoPuesto " +
+                "INNER JOIN detallecita dc ON e.CodigoEmpleado = dc.CodigoEmpleado " +
+                "INNER JOIN cita c ON dc.NumeroCita = c.NumeroCita " +
+                "WHERE p.Descripcion = 'Groomista' " +
+                "AND dc.Inicio BETWEEN ? AND ? " +
+                "GROUP BY CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')), p.Descripcion " +
+                "ORDER BY PromedioDuracionHoras ASC";
+
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql)) {
+
+            statement.setDate(1, new java.sql.Date(fechaInicio.getTime()));
+            statement.setDate(2, new java.sql.Date(fechaFin.getTime()));
+
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                String[] resultado = new String[3];
+                resultado[0] = rs.getString("NombreCompleto");
+                resultado[1] = rs.getString("Puesto");
+                resultado[2] = String.valueOf(rs.getDouble("PromedioDuracionHoras"));
+                resultados.add(resultado);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener el gromista más eficiente: " + e.getMessage());
+        }
+
+        return resultados;
+    }
+
 }
