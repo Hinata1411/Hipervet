@@ -149,7 +149,7 @@ public class EmpleadoDAO extends Conexion {
             return;
         }
 
-        String[] columnas = {"Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
+        String[] columnas = {"Codigo Empleado", "Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
         DefaultTableModel modeloReporte = new DefaultTableModel(columnas, 0);
 
         for (String[] resultado : resultados) {
@@ -207,7 +207,7 @@ public class EmpleadoDAO extends Conexion {
 
     public List<String[]> obtenerVeterinarioMasPacientes() {
         List<String[]> resultados = new ArrayList<>();
-        String sql = "SELECT TOP 1 " +
+        String sql = "SELECT TOP 1 e.CodigoEmpleado, " +
                 "CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
                 "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')) AS NombreCompleto, " +
                 "p.Descripcion AS Puesto, COUNT(c.NumeroCita) AS TotalPacientesAtendidos " +
@@ -215,8 +215,8 @@ public class EmpleadoDAO extends Conexion {
                 "INNER JOIN empleado e ON per.CodigoPersona = e.CodigoPersona " +
                 "INNER JOIN puesto p ON e.CodigoPuesto = p.CodigoPuesto " +
                 "INNER JOIN cita c ON e.CodigoEmpleado = c.CodigoEmpleado " +
-                "WHERE p.CodigoPuesto = 1 " +  // Filtrar solo veterinarios
-                "GROUP BY CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "WHERE p.CodigoPuesto = 1 " +
+                "GROUP BY e.CodigoEmpleado, CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
                 "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')), p.Descripcion " +
                 "ORDER BY TotalPacientesAtendidos DESC";
 
@@ -225,10 +225,11 @@ public class EmpleadoDAO extends Conexion {
 
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
-                String[] resultado = new String[3];
-                resultado[0] = rs.getString("NombreCompleto");
-                resultado[1] = rs.getString("Puesto");
-                resultado[2] = String.valueOf(rs.getInt("TotalPacientesAtendidos"));
+                String[] resultado = new String[4];
+                resultado[0] = rs.getString("CodigoEmpleado");
+                resultado[1] = rs.getString("NombreCompleto");
+                resultado[2] = rs.getString("Puesto");
+                resultado[3] = String.valueOf(rs.getInt("TotalPacientesAtendidos"));
                 resultados.add(resultado);
             }
         } catch (SQLException e) {
@@ -236,7 +237,40 @@ public class EmpleadoDAO extends Conexion {
         }
 
         return resultados;
+    }
+
+    public List<String[]> obtenerEmpleadoQueAtiendeMenos() {
+        List<String[]> resultados = new ArrayList<>();
+        String sql = "SELECT TOP 1 e.CodigoEmpleado, " +
+                "CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')) AS NombreCompleto, " +
+                "p.Descripcion AS Puesto, COUNT(c.NumeroCita) AS TotalPacientesAtendidos " +
+                "FROM persona per " +
+                "INNER JOIN empleado e ON per.CodigoPersona = e.CodigoPersona " +
+                "INNER JOIN puesto p ON e.CodigoPuesto = p.CodigoPuesto " +
+                "INNER JOIN cita c ON e.CodigoEmpleado = c.CodigoEmpleado " +
+                "GROUP BY e.CodigoEmpleado, CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
+                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')), p.Descripcion " +
+                "ORDER BY TotalPacientesAtendidos ASC";
+
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql)) {
+
+            ResultSet rs = statement.executeQuery();
+            while (rs.next()) {
+                String[] resultado = new String[4];
+                resultado[0] = rs.getString("CodigoEmpleado");
+                resultado[1] = rs.getString("NombreCompleto");
+                resultado[2] = rs.getString("Puesto");
+                resultado[3] = String.valueOf(rs.getInt("TotalPacientesAtendidos"));
+                resultados.add(resultado);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener el empleado que menos citas ha atendido: " + e.getMessage());
         }
+
+        return resultados;
+    }
 
     // Método para mostrar los resultados del reporte de veterinarios con más pacientes
     public void mostrarResultadosReporteVeterinario(List<String[]> resultados, JFrame reportesFrame) {
@@ -246,7 +280,7 @@ public class EmpleadoDAO extends Conexion {
         }
 
         // Definir las columnas específicas para este reporte
-        String[] columnas = {"Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
+        String[] columnas = {"Codigo Empleado ", "Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
         DefaultTableModel modeloReporte = new DefaultTableModel(columnas, 0);
 
         for (String[] resultado : resultados) {
@@ -261,38 +295,5 @@ public class EmpleadoDAO extends Conexion {
         reportesFrame.repaint();
         reportesFrame.setSize(600, 400);
     }
-
-    public List<String[]> obtenerEmpleadoQueAtiendeMenos() {
-        List<String[]> resultados = new ArrayList<>();
-        String sql = "SELECT TOP 1 " +
-                "CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
-                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')) AS NombreCompleto, " +
-                "p.Descripcion AS Puesto, COUNT(c.NumeroCita) AS TotalPacientesAtendidos " +
-                "FROM persona per " +
-                "INNER JOIN empleado e ON per.CodigoPersona = e.CodigoPersona " +
-                "INNER JOIN puesto p ON e.CodigoPuesto = p.CodigoPuesto " +
-                "INNER JOIN cita c ON e.CodigoEmpleado = c.CodigoEmpleado " +
-                "GROUP BY CONCAT(per.PrimerNombre, ' ', COALESCE(per.SegundoNombre, ''), ' ', COALESCE(per.TercerNombre, ''), ' ', " +
-                "per.PrimerApellido, ' ', per.SegundoApellido, ' ', COALESCE(per.TercerApellido, '')), p.Descripcion " +
-                "ORDER BY TotalPacientesAtendidos ASC";
-
-        try (Connection conexion = obtenerConexion();
-             PreparedStatement statement = conexion.prepareStatement(sql)) {
-
-            ResultSet rs = statement.executeQuery();
-            while (rs.next()) {
-                String[] resultado = new String[3];
-                resultado[0] = rs.getString("NombreCompleto");
-                resultado[1] = rs.getString("Puesto");
-                resultado[2] = String.valueOf(rs.getInt("TotalPacientesAtendidos"));
-                resultados.add(resultado);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al obtener el empleado que menos citas ha atendido: " + e.getMessage());
-        }
-
-        return resultados;
-    }
-
 
 }

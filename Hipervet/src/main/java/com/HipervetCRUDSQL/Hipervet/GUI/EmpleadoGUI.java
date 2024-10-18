@@ -235,10 +235,10 @@ public class EmpleadoGUI extends JPanel {
         panelFiltros.add(generarReporteButton, gbc);
 
         generarReporteButton.addActionListener(e -> {
-            if (comboBoxReportes.getItemCount() > 0) {  // Verificar si el comboBox tiene elementos
+            if (comboBoxReportes.getItemCount() > 0) {
                 String reporteSeleccionado = (String) comboBoxReportes.getSelectedItem();
 
-                if (reporteSeleccionado != null) {  // Verificar si un valor fue seleccionado
+                if (reporteSeleccionado != null) {
                     Date fechaInicio = fechaInicioChooser.getDate();
                     Date fechaFin = fechaFinChooser.getDate();
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -250,11 +250,11 @@ public class EmpleadoGUI extends JPanel {
                             mostrarResultadosReporte(resultados, reportesFrame, columnas);
                         } else if ("Veterinario con más pacientes".equals(reporteSeleccionado)) {
                             List<String[]> resultados = empleadoDAO.obtenerVeterinarioMasPacientes();
-                            String[] columnas = {"Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
+                            String[] columnas = {"Código Empleado", "Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
                             mostrarResultadosReporte(resultados, reportesFrame, columnas);
                         } else if ("Empleado que atiende menos".equals(reporteSeleccionado)) {
                             List<String[]> resultados = empleadoDAO.obtenerEmpleadoQueAtiendeMenos();
-                            String[] columnas = {"Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
+                            String[] columnas = {"Código Empleado", "Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
                             mostrarResultadosReporte(resultados, reportesFrame, columnas);
                         } else {
                             JOptionPane.showMessageDialog(reportesFrame, "Opción de reporte no implementada", "Advertencia", JOptionPane.WARNING_MESSAGE);
