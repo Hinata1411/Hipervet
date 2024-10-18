@@ -2,200 +2,241 @@ package com.HipervetCRUDSQL.Hipervet.GUI;
 
 import com.HipervetCRUDSQL.Hipervet.Conexion.EmpleadoDAO;
 import com.HipervetCRUDSQL.Hipervet.Entidades.Empleado;
+import com.toedter.calendar.JDateChooser;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import java.awt.*;
 
 public class EmpleadoGUI extends JPanel {
-    private EmpleadoDAO empleadoDAO = new EmpleadoDAO(); // Instancia del DAO
-    private JTable tablaEmpleados;
-    private DefaultTableModel modeloTabla;
-    private JTextField codigoPersonaField, primerNombreField, segundoNombreField, tercerNombreField;
-    private JTextField primerApellidoField, segundoApellidoField, tercerApellidoField, fechaNacimientoField;
-    private JTextField codigoPuestoField;
 
-    public EmpleadoGUI() {
-        setLayout(new BorderLayout());
+        private EmpleadoDAO empleadoDAO = new EmpleadoDAO();
+        private JTable tablaEmpleados;
+        private DefaultTableModel modeloTabla;
 
-        // Crear formulario para ingresar datos del empleado
-        JPanel formularioPanel = new JPanel(new GridLayout(10, 2, 10, 10));
+        public EmpleadoGUI() {
+            setLayout(new BorderLayout());
 
-        formularioPanel.add(new JLabel("Código Persona:"));
-        codigoPersonaField = new JTextField();
-        formularioPanel.add(codigoPersonaField);
+            JPanel tituloPanel = new JPanel(new BorderLayout());
+            JLabel tituloLabel = new JLabel("Empleados HiperVet", JLabel.CENTER);
+            tituloLabel.setFont(new Font("Arial", Font.BOLD, 24));
+            tituloPanel.add(tituloLabel, BorderLayout.NORTH);
 
-        formularioPanel.add(new JLabel("Primer Nombre:"));
-        primerNombreField = new JTextField();
-        formularioPanel.add(primerNombreField);
+            JPanel botonArribaPanel = new JPanel();
+            botonArribaPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
-        formularioPanel.add(new JLabel("Segundo Nombre:"));
-        segundoNombreField = new JTextField();
-        formularioPanel.add(segundoNombreField);
+            JButton exportarExcelButton = new JButton("Exportar a Excel");
+            exportarExcelButton.addActionListener(e -> exportarTablaAExcel());
+            botonArribaPanel.add(exportarExcelButton);
 
-        formularioPanel.add(new JLabel("Tercer Nombre:"));
-        tercerNombreField = new JTextField();
-        formularioPanel.add(tercerNombreField);
+            JButton asignarPuestoButton = new JButton("Asignar Puesto");
+            asignarPuestoButton.addActionListener(e -> asignarPuesto());
+            botonArribaPanel.add(asignarPuestoButton);
 
-        formularioPanel.add(new JLabel("Primer Apellido:"));
-        primerApellidoField = new JTextField();
-        formularioPanel.add(primerApellidoField);
+            JButton asignarCodigoEmpleadoButton = new JButton("Asignar Código de Empleado");
+            asignarCodigoEmpleadoButton.addActionListener(e -> asignarCodigoEmpleado());
+            botonArribaPanel.add(asignarCodigoEmpleadoButton);
 
-        formularioPanel.add(new JLabel("Segundo Apellido:"));
-        segundoApellidoField = new JTextField();
-        formularioPanel.add(segundoApellidoField);
+            tituloPanel.add(botonArribaPanel, BorderLayout.SOUTH);
+            add(tituloPanel, BorderLayout.NORTH);
 
-        formularioPanel.add(new JLabel("Tercer Apellido:"));
-        tercerApellidoField = new JTextField();
-        formularioPanel.add(tercerApellidoField);
+            String[] columnas = {"Codigo Empleado", "Codigo Persona", "Primer Nombre", "Segundo Nombre", "Tercer Nombre",
+                    "Primer Apellido", "Segundo Apellido", "Tercer Apellido", "Fecha de Nacimiento", "Codigo Puesto", "Descripción Puesto"};
+            modeloTabla = new DefaultTableModel(columnas, 0);
+            tablaEmpleados = new JTable(modeloTabla);
 
-        formularioPanel.add(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"));
-        fechaNacimientoField = new JTextField();
-        formularioPanel.add(fechaNacimientoField);
+            cargarEmpleados();
+            JScrollPane scrollPane = new JScrollPane(tablaEmpleados);
+            add(scrollPane, BorderLayout.CENTER);
 
-        formularioPanel.add(new JLabel("Código de Puesto:"));
-        codigoPuestoField = new JTextField();
-        formularioPanel.add(codigoPuestoField);
+            JPanel botonAbajoPanel = new JPanel();
+            botonAbajoPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
-        // Panel para los botones
-        JPanel botonesPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+            JButton actualizarButton = new JButton("Actualizar");
+            actualizarButton.addActionListener(e -> cargarEmpleados());
+            botonAbajoPanel.add(actualizarButton);
 
-        JButton agregarButton = new JButton("Agregar Empleado");
-        agregarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                agregarEmpleado(); // Método para agregar empleado
-            }
-        });
-        botonesPanel.add(agregarButton);
+            JButton reportesButton = new JButton("Reportes");
+            reportesButton.addActionListener(e -> mostrarVentanaReportes());
+            botonAbajoPanel.add(reportesButton);
 
-        JButton eliminarButton = new JButton("Eliminar Empleado");
-        eliminarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eliminarEmpleado(); // Método para eliminar empleado
-            }
-        });
-        botonesPanel.add(eliminarButton);
-
-        JButton actualizarButton = new JButton("Actualizar Empleado");
-        actualizarButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                actualizarEmpleado(); // Método para actualizar empleado
-            }
-        });
-        botonesPanel.add(actualizarButton);
-
-        // Añadir el panel de botones al lado del formulario
-        formularioPanel.add(botonesPanel);
-
-        // Crear la tabla de empleados con las nuevas columnas
-        String[] columnas = {"Codigo Empleado", "Primer Nombre", "Segundo Nombre", "Tercer Nombre",
-                "Primer Apellido", "Segundo Apellido", "Tercer Apellido",
-                "Fecha de Nacimiento", "Codigo Puesto", "Descripción Puesto"};
-        modeloTabla = new DefaultTableModel(columnas, 0);
-        tablaEmpleados = new JTable(modeloTabla);
-
-        // Cargar empleados desde la base de datos
-        cargarEmpleados();
-
-        // Panel para la tabla
-        JScrollPane scrollPane = new JScrollPane(tablaEmpleados);
-
-        // Crear un JSplitPane para dividir el formulario y la tabla
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, formularioPanel, scrollPane);
-        splitPane.setDividerLocation(400); // Ajustar el tamaño del divisor
-
-        add(splitPane, BorderLayout.CENTER);
-    }
-
-    // Método para cargar los empleados desde la base de datos
-    private void cargarEmpleados() {
-        modeloTabla.setRowCount(0); // Limpiar la tabla antes de cargar
-        List<Empleado> empleados = empleadoDAO.obtenerEmpleados();
-        for (Empleado empleado : empleados) {
-            modeloTabla.addRow(new Object[]{
-                    empleado.getCodigoEmpleado(),
-                    empleado.getPrimerNombre(),
-                    empleado.getSegundoNombre(),
-                    empleado.getTercerNombre(),
-                    empleado.getPrimerApellido(),
-                    empleado.getSegundoApellido(),
-                    empleado.getTercerApellido(),
-                    empleado.getFechaNacimiento(),
-                    empleado.getCodigoPuesto(),
-                    empleado.getDescripcionPuesto()
-            });
+            add(botonAbajoPanel, BorderLayout.SOUTH);
         }
-    }
 
-    // Método para agregar un empleado a la base de datos
-    // Método para agregar un empleado a la base de datos
-    private void agregarEmpleado() {
-        try {
-            // Validaciones
-            if (codigoPersonaField.getText().isEmpty() || codigoPuestoField.getText().isEmpty()) {
-                throw new IllegalArgumentException("El código de persona y el código de puesto son obligatorios.");
+        private void cargarEmpleados() {
+            modeloTabla.setRowCount(0);
+            List<Empleado> empleados = empleadoDAO.obtenerEmpleados();
+            for (Empleado empleado : empleados) {
+                modeloTabla.addRow(new Object[]{
+                        empleado.getCodigoEmpleado() != 0 ? empleado.getCodigoEmpleado() : "Sin asignar",
+                        empleado.getCodigoPersona(),
+                        empleado.getPrimerNombre(),
+                        empleado.getSegundoNombre(),
+                        empleado.getTercerNombre(),
+                        empleado.getPrimerApellido(),
+                        empleado.getSegundoApellido(),
+                        empleado.getTercerApellido(),
+                        empleado.getFechaNacimiento(),
+                        empleado.getCodigoPuesto() != 0 ? empleado.getCodigoPuesto() : "Sin asignar",
+                        empleado.getDescripcionPuesto() != null ? empleado.getDescripcionPuesto() : "Sin puesto asignado"
+                });
             }
+        }
 
-            // Obtener los datos del formulario
-            int codigoPersona = Integer.parseInt(codigoPersonaField.getText()); // CodigoPersona que se pasa
-            String primerNombre = primerNombreField.getText();
-            String segundoNombre = segundoNombreField.getText();
-            String tercerNombre = tercerNombreField.getText();
-            String primerApellido = primerApellidoField.getText();
-            String segundoApellido = segundoApellidoField.getText();
-            String tercerApellido = tercerApellidoField.getText();
-            String fechaNacimiento = fechaNacimientoField.getText();
-            int codigoPuesto = Integer.parseInt(codigoPuestoField.getText());
+        private void asignarPuesto() {
+            int filaSeleccionada = tablaEmpleados.getSelectedRow();
+            if (filaSeleccionada != -1) {
+                String codigoEmpleado = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+                List<String[]> puestos = empleadoDAO.obtenerPuestos();
 
-            // Crear un nuevo empleado
-            Empleado nuevoEmpleado = new Empleado();
-            nuevoEmpleado.setCodigoPersona(codigoPersona); // Asignar el código persona
-            nuevoEmpleado.setPrimerNombre(primerNombre);
-            nuevoEmpleado.setSegundoNombre(segundoNombre);
-            nuevoEmpleado.setTercerNombre(tercerNombre);
-            nuevoEmpleado.setPrimerApellido(primerApellido);
-            nuevoEmpleado.setSegundoApellido(segundoApellido);
-            nuevoEmpleado.setTercerApellido(tercerApellido);
-            nuevoEmpleado.setFechaNacimiento(java.time.LocalDate.parse(fechaNacimiento));
-            nuevoEmpleado.setCodigoPuesto(codigoPuesto);
+                JComboBox<String> comboPuestos = new JComboBox<>();
+                for (String[] puesto : puestos) {
+                    comboPuestos.addItem(puesto[0] + " - " + puesto[1]);
+                }
 
-            // Llamar al DAO para insertar el nuevo empleado
-            if (empleadoDAO.crearEmpleado(nuevoEmpleado)) {
-                JOptionPane.showMessageDialog(this, "Empleado agregado exitosamente.");
-                cargarEmpleados(); // Refrescar la tabla
+                int resultado = JOptionPane.showConfirmDialog(this, comboPuestos, "Seleccione el puesto", JOptionPane.OK_CANCEL_OPTION);
+                if (resultado == JOptionPane.OK_OPTION) {
+                    String seleccionado = (String) comboPuestos.getSelectedItem();
+                    String[] partes = seleccionado.split(" - ");
+                    String codigoPuesto = partes[0];
+
+                    if (empleadoDAO.asignarPuesto(Integer.parseInt(codigoEmpleado), Integer.parseInt(codigoPuesto))) {
+                        JOptionPane.showMessageDialog(this, "Puesto asignado exitosamente.");
+                        cargarEmpleados();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Error al asignar el puesto.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Error al agregar el empleado.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Por favor, seleccione un empleado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        private void asignarCodigoEmpleado() {
+            int filaSeleccionada = tablaEmpleados.getSelectedRow();
+            if (filaSeleccionada != -1) {
+                String nuevoCodigoEmpleado = JOptionPane.showInputDialog(this, "Ingrese el nuevo código de empleado:");
+                if (nuevoCodigoEmpleado != null && !nuevoCodigoEmpleado.isEmpty()) {
+                    String codigoPersona = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+
+                    if (empleadoDAO.asignarCodigoEmpleado(Integer.parseInt(codigoPersona), Integer.parseInt(nuevoCodigoEmpleado))) {
+                        JOptionPane.showMessageDialog(this, "Código de empleado asignado exitosamente.");
+                        cargarEmpleados();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Error al asignar el código de empleado.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Por favor, seleccione una persona para asignar un código de empleado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        private void exportarTablaAExcel() {
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Empleados");
+
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < modeloTabla.getColumnCount(); i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(modeloTabla.getColumnName(i));
             }
 
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Por favor, ingrese valores válidos en los campos.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            for (int i = 0; i < modeloTabla.getRowCount(); i++) {
+                Row dataRow = sheet.createRow(i + 1);
+                for (int j = 0; j < modeloTabla.getColumnCount(); j++) {
+                    Cell cell = dataRow.createCell(j);
+                    Object value = modeloTabla.getValueAt(i, j);
+                    if (value != null) {
+                        cell.setCellValue(value.toString());
+                    }
+                }
+            }
+
+            for (int i = 0; i < modeloTabla.getColumnCount(); i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            try {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Guardar archivo Excel");
+                int userSelection = fileChooser.showSaveDialog(this);
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+                    if (!filePath.endsWith(".xlsx")) {
+                        filePath += ".xlsx";
+                    }
+                    FileOutputStream fileOut = new FileOutputStream(filePath);
+                    workbook.write(fileOut);
+                    fileOut.close();
+                    workbook.close();
+                    JOptionPane.showMessageDialog(this, "Archivo Excel exportado exitosamente.");
+                }
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error al exportar el archivo Excel: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-    }
 
+        private void mostrarVentanaReportes() {
+            JFrame reportesFrame = new JFrame("Reportes");
+            reportesFrame.setLayout(new GridLayout(5, 2, 10, 10));
 
-    // Método para eliminar un empleado
-    private void eliminarEmpleado() {
-        // Lógica para eliminar un empleado
-    }
+            String[] opcionesReportes = {"Gromista más eficiente", "Veterinario con más pacientes", "Empleado que atiende menos", "Empleado con más faltas"};
+            JComboBox<String> comboBoxReportes = new JComboBox<>(opcionesReportes);
 
-    // Método para actualizar un empleado
-    private void actualizarEmpleado() {
-        // Lógica para actualizar un empleado
-    }
+            JDateChooser fechaInicioChooser = new JDateChooser();
+            JDateChooser fechaFinChooser = new JDateChooser();
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Empleado GUI");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000, 600);
-        frame.add(new EmpleadoGUI());
-        frame.setVisible(true);
-    }
+            JLabel fechaInicioLabel = new JLabel("Fecha de Inicio:");
+            JLabel fechaFinLabel = new JLabel("Fecha de Fin:");
+
+            JButton generarReporteButton = new JButton("Generar Reporte");
+            generarReporteButton.addActionListener(e -> {
+                String reporteSeleccionado = (String) comboBoxReportes.getSelectedItem();
+                Date fechaInicio = fechaInicioChooser.getDate();
+                Date fechaFin = fechaFinChooser.getDate();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                if (fechaInicio != null && fechaFin != null) {
+                    JOptionPane.showMessageDialog(reportesFrame, "Generando reporte: " + reporteSeleccionado +
+                            "\nDesde: " + dateFormat.format(fechaInicio) + " Hasta: " + dateFormat.format(fechaFin));
+                    // Lógica para generar los reportes específicos con el rango de fechas
+                } else {
+                    JOptionPane.showMessageDialog(reportesFrame, "Por favor seleccione las fechas de inicio y fin.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            reportesFrame.add(new JLabel("Seleccione un reporte:"));
+            reportesFrame.add(comboBoxReportes);
+            reportesFrame.add(fechaInicioLabel);
+            reportesFrame.add(fechaInicioChooser);
+            reportesFrame.add(fechaFinLabel);
+            reportesFrame.add(fechaFinChooser);
+            reportesFrame.add(new JLabel());
+            reportesFrame.add(generarReporteButton);
+
+            reportesFrame.pack();
+            reportesFrame.setLocationRelativeTo(null);
+            reportesFrame.setVisible(true);
+        }
+
+        public static void main(String[] args) {
+            JFrame frame = new JFrame("Empleado GUI");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(1000, 600);
+            frame.add(new EmpleadoGUI());
+            frame.setVisible(true);
+        }
+
 }

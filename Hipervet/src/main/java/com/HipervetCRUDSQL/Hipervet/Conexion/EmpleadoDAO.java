@@ -2,7 +2,7 @@ package com.HipervetCRUDSQL.Hipervet.Conexion;
 
 import com.HipervetCRUDSQL.Hipervet.Entidades.Empleado;
 
-
+import java.util.Date;  // Para trabajar con fechas en el código en general
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,114 +12,164 @@ import java.util.List;
 
 public class EmpleadoDAO extends Conexion {
 
-    // Crear (ingresando manualmente el CodigoEmpleado y auto-incrementando CodigoPersona)
-    public boolean crearEmpleado(Empleado empleado) {
-        String sql = "INSERT INTO Empleado (CodigoEmpleado, CodigoPersona, CodigoPuesto) VALUES (?, ?, ?)";
-        try (Connection conexion = obtenerConexion();
-             PreparedStatement statement = conexion.prepareStatement(sql)) {
+        // Método para crear un empleado
+        public boolean crearEmpleado(Empleado empleado) {
+            String sql = "INSERT INTO Empleado (CodigoEmpleado, CodigoPersona, CodigoPuesto) VALUES (?, ?, ?)";
+            try (Connection conexion = obtenerConexion();
+                 PreparedStatement statement = conexion.prepareStatement(sql)) {
 
-            // Validaciones previas
-            if (empleado.getCodigoEmpleado() <= 0 || empleado.getCodigoPuesto() <= 0) {
-                throw new IllegalArgumentException("El código de empleado y de puesto no pueden ser negativos o cero.");
+                statement.setInt(1, empleado.getCodigoEmpleado());
+                statement.setInt(2, empleado.getCodigoPersona());
+                statement.setInt(3, empleado.getCodigoPuesto());
+
+                return statement.executeUpdate() > 0;
+            } catch (SQLException e) {
+                System.err.println("Error al crear el empleado: " + e.getMessage());
             }
-
-            // Obtener el siguiente CodigoPersona disponible
-            int siguienteCodigoPersona = obtenerSiguienteCodigoPersona();
-
-            // Asignar correctamente los valores
-            statement.setInt(1, empleado.getCodigoEmpleado()); // Código del empleado
-            statement.setInt(2, siguienteCodigoPersona);       // Código de persona (incrementado automáticamente)
-            statement.setInt(3, empleado.getCodigoPuesto());   // Código del puesto
-
-            int affectedRows = statement.executeUpdate();
-            if (affectedRows > 0) {
-                empleado.setCodigoPersona(siguienteCodigoPersona); // Asignar el código de persona generado
-                return true;
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al crear el empleado: " + e.getMessage());
-        }
-        return false;
-    }
-
-    // Método para obtener el siguiente CodigoPersona disponible (incrementado automáticamente)
-    private int obtenerSiguienteCodigoPersona() {
-        String sql = "SELECT ISNULL(MAX(CodigoPersona), 0) + 1 AS SiguienteCodigoPersona FROM Persona";
-        try (Connection conexion = obtenerConexion();
-             PreparedStatement statement = conexion.prepareStatement(sql);
-             ResultSet rs = statement.executeQuery()) {
-
-            if (rs.next()) {
-                return rs.getInt("SiguienteCodigoPersona");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al obtener el siguiente código de persona: " + e.getMessage());
-        }
-        return 1; // Retornar 1 si no hay personas en la tabla
-    }
-
-    // Leer (obtener todos los empleados)
-    public List<Empleado> obtenerEmpleados() {
-        List<Empleado> empleados = new ArrayList<>();
-        String sql = "SELECT e.CodigoEmpleado, p.PrimerNombre, p.SegundoNombre, p.TercerNombre, " +
-                "p.PrimerApellido, p.SegundoApellido, p.TercerApellido, p.FechaNacimiento, " +
-                "e.CodigoPuesto, pu.Descripcion " +
-                "FROM Empleado e " +
-                "JOIN Persona p ON e.CodigoPersona = p.CodigoPersona " +
-                "JOIN Puesto pu ON e.CodigoPuesto = pu.CodigoPuesto";
-
-        try (Connection conn = obtenerConexion();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Empleado empleado = new Empleado();
-                empleado.setCodigoEmpleado(rs.getInt("CodigoEmpleado"));
-                empleado.setPrimerNombre(rs.getString("PrimerNombre"));
-                empleado.setSegundoNombre(rs.getString("SegundoNombre"));
-                empleado.setTercerNombre(rs.getString("TercerNombre"));
-                empleado.setPrimerApellido(rs.getString("PrimerApellido"));
-                empleado.setSegundoApellido(rs.getString("SegundoApellido"));
-                empleado.setTercerApellido(rs.getString("TercerApellido"));
-                empleado.setFechaNacimiento(rs.getDate("FechaNacimiento").toLocalDate());
-                empleado.setCodigoPuesto(rs.getInt("CodigoPuesto"));
-                empleado.setDescripcionPuesto(rs.getString("Descripcion"));
-                empleados.add(empleado);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al obtener los empleados: " + e.getMessage());
-        }
-
-        return empleados;
-    }
-
-
-    // Actualizar
-    public boolean actualizarEmpleado(Empleado empleado) {
-        String sql = "UPDATE Empleado SET CodigoPersona = ?, CodigoPuesto = ? WHERE CodigoEmpleado = ?";
-        try (Connection conexion = obtenerConexion(); PreparedStatement statement = conexion.prepareStatement(sql)) {
-            // Si CodigoPersona es un int, mantenemos setInt; de lo contrario, usamos setString
-            statement.setInt(1, empleado.getCodigoEmpleado()); // Si CodigoPersona es un entero
-            statement.setInt(2, empleado.getCodigoPuesto());  // Si CodigoPuesto es un entero
-            statement.setInt(3, empleado.getCodigoEmpleado()); // Este es probablemente un entero
-
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error al actualizar el empleado: " + e.getMessage());
             return false;
         }
-    }
 
+        // Método para obtener todos los empleados (incluyendo los que no tienen puesto asignado)
+        public List<Empleado> obtenerEmpleados() {
+            List<Empleado> empleados = new ArrayList<>();
+            String sql = "SELECT e.CodigoEmpleado, per.CodigoPersona, per.PrimerNombre, per.SegundoNombre, per.TercerNombre, " +
+                    "per.PrimerApellido, per.SegundoApellido, per.TercerApellido, per.FechaNacimiento, p.CodigoPuesto, p.Descripcion " +
+                    "FROM persona AS per " +
+                    "LEFT JOIN empleado e ON per.CodigoPersona = e.CodigoPersona " +
+                    "LEFT JOIN puesto p ON e.CodigoPuesto = p.CodigoPuesto " +
+                    "WHERE tipoPersona = 'E'";  // Filtrar por empleados
 
-    // Eliminar
-    public boolean eliminarEmpleado(int codigoEmpleado) {
-        String sql = "DELETE FROM Empleado WHERE CodigoEmpleado = ?";
-        try (Connection conexion = obtenerConexion(); PreparedStatement statement = conexion.prepareStatement(sql)) {
-            statement.setInt(1, codigoEmpleado);
-            return statement.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar el empleado: " + e.getMessage());
+            try (Connection conn = obtenerConexion();
+                 PreparedStatement stmt = conn.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
+
+                while (rs.next()) {
+                    Empleado empleado = new Empleado();
+                    empleado.setCodigoEmpleado(rs.getInt("CodigoEmpleado")); // Código de empleado (puede ser nulo si no tiene)
+                    empleado.setCodigoPersona(rs.getInt("CodigoPersona")); // Código de persona
+                    empleado.setPrimerNombre(rs.getString("PrimerNombre"));
+                    empleado.setSegundoNombre(rs.getString("SegundoNombre"));
+                    empleado.setTercerNombre(rs.getString("TercerNombre"));
+                    empleado.setPrimerApellido(rs.getString("PrimerApellido"));
+                    empleado.setSegundoApellido(rs.getString("SegundoApellido"));
+                    empleado.setTercerApellido(rs.getString("TercerApellido"));
+                    empleado.setFechaNacimiento(rs.getDate("FechaNacimiento").toLocalDate());
+                    empleado.setCodigoPuesto(rs.getInt("CodigoPuesto")); // Puede ser nulo
+                    empleado.setDescripcionPuesto(rs.getString("Descripcion")); // Puede ser nulo
+
+                    empleados.add(empleado);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error al obtener los empleados: " + e.getMessage());
+            }
+
+            return empleados;
+        }
+
+        // Método para asignar un puesto a un empleado
+        public boolean asignarPuesto(int codigoEmpleado, int codigoPuesto) {
+            String sql = "UPDATE Empleado SET CodigoPuesto = ? WHERE CodigoEmpleado = ?";
+            try (Connection conexion = obtenerConexion();
+                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+
+                statement.setInt(1, codigoPuesto);  // Actualizar el puesto
+                statement.setInt(2, codigoEmpleado);  // Usar el código del empleado
+
+                return statement.executeUpdate() > 0; // Retorna true si se actualiza correctamente
+            } catch (SQLException e) {
+                System.err.println("Error al asignar el puesto: " + e.getMessage());
+            }
             return false;
         }
-    }
+
+        // Método para asignar o crear un código de empleado para una persona
+        public boolean asignarCodigoEmpleado(int codigoPersona, int codigoEmpleado) {
+            String verificarSql = "SELECT COUNT(*) FROM Empleado WHERE CodigoPersona = ?";
+            String insertarSql = "INSERT INTO Empleado (CodigoEmpleado, CodigoPersona) VALUES (?, ?)";
+            String actualizarSql = "UPDATE Empleado SET CodigoEmpleado = ? WHERE CodigoPersona = ?";
+
+            try (Connection conexion = obtenerConexion();
+                 PreparedStatement verificarStatement = conexion.prepareStatement(verificarSql)) {
+
+                // Verificar si ya existe un empleado con el código de persona
+                verificarStatement.setInt(1, codigoPersona);
+                ResultSet rs = verificarStatement.executeQuery();
+                rs.next();
+                int count = rs.getInt(1);
+
+                if (count > 0) {
+                    // Si ya existe, actualizar el código de empleado
+                    try (PreparedStatement actualizarStatement = conexion.prepareStatement(actualizarSql)) {
+                        actualizarStatement.setInt(1, codigoEmpleado);
+                        actualizarStatement.setInt(2, codigoPersona);
+                        return actualizarStatement.executeUpdate() > 0;
+                    }
+                } else {
+                    // Si no existe, insertar un nuevo registro de empleado
+                    try (PreparedStatement insertarStatement = conexion.prepareStatement(insertarSql)) {
+                        insertarStatement.setInt(1, codigoEmpleado);
+                        insertarStatement.setInt(2, codigoPersona);
+                        return insertarStatement.executeUpdate() > 0;
+                    }
+                }
+            } catch (SQLException e) {
+                System.err.println("Error al asignar el código de empleado: " + e.getMessage());
+            }
+            return false;
+        }
+
+        // Método para obtener todos los puestos disponibles
+        public List<String[]> obtenerPuestos() {
+            List<String[]> puestos = new ArrayList<>();
+            String sql = "SELECT CodigoPuesto, Descripcion FROM puesto";
+
+            try (Connection conexion = obtenerConexion();
+                 PreparedStatement statement = conexion.prepareStatement(sql);
+                 ResultSet rs = statement.executeQuery()) {
+
+                while (rs.next()) {
+                    String[] puesto = new String[2];
+                    puesto[0] = rs.getString("CodigoPuesto");
+                    puesto[1] = rs.getString("Descripcion");
+                    puestos.add(puesto);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error al obtener los puestos: " + e.getMessage());
+            }
+
+            return puestos;
+        }
+
+        // Método para obtener el gromista más eficiente entre las fechas proporcionadas
+        public List<String[]> obtenerGromistaMasEficiente(Date fechaInicio, Date fechaFin) {
+            List<String[]> resultados = new ArrayList<>();
+            String sql = "SELECT e.CodigoEmpleado, CONCAT(p.PrimerNombre, ' ', p.PrimerApellido) AS NombreCompleto, COUNT(c.CodigoCita) AS TotalCitas " +
+                    "FROM empleado e " +
+                    "JOIN cita c ON e.CodigoEmpleado = c.CodigoEmpleado " +
+                    "JOIN persona p ON e.CodigoPersona = p.CodigoPersona " +
+                    "WHERE e.CodigoPuesto = ? AND c.FechaCita BETWEEN ? AND ? " +  // Filtrar por gromista y fechas
+                    "GROUP BY e.CodigoEmpleado, p.PrimerNombre, p.PrimerApellido " +
+                    "ORDER BY TotalCitas DESC LIMIT 1";
+
+            try (Connection conexion = obtenerConexion();
+                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+
+                statement.setInt(1, 2); // Suponiendo que el CódigoPuesto 2 es el de Gromista
+                statement.setDate(2, new java.sql.Date(fechaInicio.getTime()));
+                statement.setDate(3, new java.sql.Date(fechaFin.getTime()));
+                ResultSet rs = statement.executeQuery();
+
+                while (rs.next()) {
+                    String[] resultado = new String[3];
+                    resultado[0] = rs.getString("CodigoEmpleado");
+                    resultado[1] = rs.getString("NombreCompleto");
+                    resultado[2] = rs.getString("TotalCitas");
+                    resultados.add(resultado);
+                }
+            } catch (SQLException e) {
+                System.err.println("Error al obtener el gromista más eficiente: " + e.getMessage());
+            }
+
+            return resultados;
+        }
 }
