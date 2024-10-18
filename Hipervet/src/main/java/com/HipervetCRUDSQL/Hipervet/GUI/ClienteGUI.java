@@ -3,7 +3,7 @@ package com.HipervetCRUDSQL.Hipervet.GUI;
 import javax.swing.*;
 import java.awt.*;
 
-public class ClienteGUI extends JFrame {
+public class ClienteGUI extends JPanel {
     public ClienteGUI() {
         setLayout(new BorderLayout());
 

@@ -3,7 +3,7 @@ package com.HipervetCRUDSQL.Hipervet.GUI;
 import javax.swing.*;
 import java.awt.*;
 
-public class MascotaGUI extends JFrame {
+public class MascotaGUI extends JPanel {
     public MascotaGUI() {
         setLayout(new BorderLayout());
 
