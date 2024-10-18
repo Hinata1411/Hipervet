@@ -4,6 +4,7 @@ import com.HipervetCRUDSQL.Hipervet.Conexion.EmpleadoDAO;
 import com.HipervetCRUDSQL.Hipervet.Conexion.PersonaDAO;
 import com.HipervetCRUDSQL.Hipervet.Entidades.Empleado;
 import com.HipervetCRUDSQL.Hipervet.Entidades.Persona;
+import com.toedter.calendar.JDateChooser;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -20,6 +21,9 @@ public class PersonaGUI extends JPanel {
     private JTextField codigoPersonaField, primerNombreField, segundoNombreField, tercerNombreField;
     private JTextField primerApellidoField, segundoApellidoField, tercerApellidoField, fechaNacimientoField;
     private JTextField tipoPersonaField;
+
+    // Usar JDateChooser en lugar de JTextField para la fecha de nacimiento
+    private JDateChooser fechaNacimientoChooser;
 
     // Declarar el JComboBox aquí
     private JComboBox<String> tipoPersonaComboBox;
@@ -58,12 +62,11 @@ public class PersonaGUI extends JPanel {
         tercerApellidoField = new JTextField();
         formularioPanel.add(tercerApellidoField);
 
-        formularioPanel.add(new JLabel("Fecha de Nacimiento (YYYY-MM-DD):"));
-        fechaNacimientoField = new JTextField();
-        formularioPanel.add(fechaNacimientoField);
+        formularioPanel.add(new JLabel("Fecha de Nacimiento:"));
+        fechaNacimientoChooser = new JDateChooser(); // Reemplazar el JTextField con JDateChooser
+        formularioPanel.add(fechaNacimientoChooser);
 
         formularioPanel.add(new JLabel("Tipo de Persona:"));
-        // Sustituyendo el campo de texto con un JComboBox para seleccionar el tipo de persona
         tipoPersonaComboBox = new JComboBox<>(new String[]{"Empleado", "Cliente"});
         formularioPanel.add(tipoPersonaComboBox);
 
@@ -150,9 +153,14 @@ public class PersonaGUI extends JPanel {
             String tercerNombre = tercerNombreField.getText();
             String segundoApellido = segundoApellidoField.getText();
             String tercerApellido = tercerApellidoField.getText();
-            String fechaNacimiento = fechaNacimientoField.getText();
 
-            // Obtener el tipo de persona desde el JComboBox y utilizar valores cortos
+            // Obtener la fecha de nacimiento desde el JDateChooser
+            java.util.Date fechaNacimiento = fechaNacimientoChooser.getDate();
+            if (fechaNacimiento == null) {
+                throw new IllegalArgumentException("La Fecha de Nacimiento es obligatoria.");
+            }
+
+            // Obtener el tipo de persona desde el JComboBox
             String tipoPersona = (String) tipoPersonaComboBox.getSelectedItem();
             if (tipoPersona.equals("Empleado")) {
                 tipoPersona = "E"; // Valor corto para Empleado
@@ -169,7 +177,7 @@ public class PersonaGUI extends JPanel {
             nuevaPersona.setPrimerApellido(primerApellido);
             nuevaPersona.setSegundoApellido(segundoApellido);
             nuevaPersona.setTercerApellido(tercerApellido);
-            nuevaPersona.setFechaNacimiento(java.sql.Date.valueOf(fechaNacimiento).toLocalDate());
+            nuevaPersona.setFechaNacimiento(new java.sql.Date(fechaNacimiento.getTime()).toLocalDate());
             nuevaPersona.setTipoPersona(tipoPersona);
 
             // Llamar al DAO para insertar la nueva persona
@@ -186,7 +194,6 @@ public class PersonaGUI extends JPanel {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("Persona GUI");
