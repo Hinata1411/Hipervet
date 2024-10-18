@@ -188,23 +188,48 @@ public class EmpleadoGUI extends JPanel {
         }
     }
 
-
-
     private void mostrarVentanaReportes() {
         JFrame reportesFrame = new JFrame("Reportes");
         reportesFrame.setLayout(new BorderLayout());
 
-        JPanel panelFiltros = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel panelFiltros = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10); // Espaciado entre los componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL; // Componente lleno horizontalmente
+        gbc.gridx = 0; // Columna 0
+        gbc.gridy = 0; // Fila 0
 
-        JDateChooser fechaInicioChooser = new JDateChooser();
-        JDateChooser fechaFinChooser = new JDateChooser();
         JLabel fechaInicioLabel = new JLabel("Fecha de Inicio:");
-        JLabel fechaFinLabel = new JLabel("Fecha de Fin:");
+        panelFiltros.add(fechaInicioLabel, gbc);
 
+        gbc.gridx = 1; // Columna 1
+        JDateChooser fechaInicioChooser = new JDateChooser();
+        panelFiltros.add(fechaInicioChooser, gbc);
+
+        gbc.gridx = 0; // Regresar a columna 0
+        gbc.gridy = 1; // Siguiente fila
+        JLabel fechaFinLabel = new JLabel("Fecha de Fin:");
+        panelFiltros.add(fechaFinLabel, gbc);
+
+        gbc.gridx = 1; // Columna 1
+        JDateChooser fechaFinChooser = new JDateChooser();
+        panelFiltros.add(fechaFinChooser, gbc);
+
+        gbc.gridx = 0; // Columna 0
+        gbc.gridy = 2; // Siguiente fila
+        JLabel reporteLabel = new JLabel("Seleccione un reporte:");
+        panelFiltros.add(reporteLabel, gbc);
+
+        gbc.gridx = 1; // Columna 1
         JComboBox<String> comboBoxReportes = new JComboBox<>(new String[]{
                 "Gromista más eficiente", "Veterinario con más pacientes", "Empleado que atiende menos", "Empleado con más faltas"});
+        panelFiltros.add(comboBoxReportes, gbc);
 
+        gbc.gridx = 0; // Columna 0
+        gbc.gridy = 3; // Siguiente fila
+        gbc.gridwidth = 2; // Extender botón en ambas columnas
         JButton generarReporteButton = new JButton("Generar Reporte");
+        panelFiltros.add(generarReporteButton, gbc);
 
         generarReporteButton.addActionListener(e -> {
             String reporteSeleccionado = (String) comboBoxReportes.getSelectedItem();
@@ -224,15 +249,6 @@ public class EmpleadoGUI extends JPanel {
             }
         });
 
-        panelFiltros.add(new JLabel("Seleccione un reporte:"));
-        panelFiltros.add(comboBoxReportes);
-        panelFiltros.add(fechaInicioLabel);
-        panelFiltros.add(fechaInicioChooser);
-        panelFiltros.add(fechaFinLabel);
-        panelFiltros.add(fechaFinChooser);
-        panelFiltros.add(new JLabel());
-        panelFiltros.add(generarReporteButton);
-
         reportesFrame.add(panelFiltros, BorderLayout.NORTH);
 
         reportesFrame.pack();
@@ -240,7 +256,6 @@ public class EmpleadoGUI extends JPanel {
         reportesFrame.setVisible(true);
     }
 
-    // Método para mostrar los resultados del reporte en una tabla
     // Método para mostrar los resultados del reporte en una tabla
     private void mostrarResultadosReporte(List<String[]> resultados, JFrame reportesFrame) {
         if (resultados.isEmpty()) {
