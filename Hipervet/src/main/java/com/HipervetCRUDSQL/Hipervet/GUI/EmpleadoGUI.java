@@ -222,7 +222,10 @@ public class EmpleadoGUI extends JPanel {
 
         gbc.gridx = 1; // Columna 1
         JComboBox<String> comboBoxReportes = new JComboBox<>(new String[]{
-                "Gromista más eficiente", "Veterinario con más pacientes", "Empleado que atiende menos", "Empleado con más faltas"});
+                "Gromista más eficiente",
+                "Veterinario con más pacientes",
+                "Empleado que atiende menos",
+                "Empleado con más faltas"});
         panelFiltros.add(comboBoxReportes, gbc);
 
         gbc.gridx = 0; // Columna 0
@@ -232,20 +235,38 @@ public class EmpleadoGUI extends JPanel {
         panelFiltros.add(generarReporteButton, gbc);
 
         generarReporteButton.addActionListener(e -> {
-            String reporteSeleccionado = (String) comboBoxReportes.getSelectedItem();
-            Date fechaInicio = fechaInicioChooser.getDate();
-            Date fechaFin = fechaFinChooser.getDate();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            if (comboBoxReportes.getItemCount() > 0) {  // Verificar si el comboBox tiene elementos
+                String reporteSeleccionado = (String) comboBoxReportes.getSelectedItem();
 
-            if (fechaInicio != null && fechaFin != null) {
-                if ("Gromista más eficiente".equals(reporteSeleccionado)) {
-                    List<String[]> resultados = empleadoDAO.obtenerGromistaMasEficiente(fechaInicio, fechaFin);
-                    mostrarResultadosReporte(resultados, reportesFrame);  // Aquí mostramos los resultados
+                if (reporteSeleccionado != null) {  // Verificar si un valor fue seleccionado
+                    Date fechaInicio = fechaInicioChooser.getDate();
+                    Date fechaFin = fechaFinChooser.getDate();
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+                    if (fechaInicio != null && fechaFin != null) {
+                        if ("Gromista más eficiente".equals(reporteSeleccionado)) {
+                            List<String[]> resultados = empleadoDAO.obtenerGromistaMasEficiente(fechaInicio, fechaFin);
+                            String[] columnas = {"Código Empleado", "Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
+                            mostrarResultadosReporte(resultados, reportesFrame, columnas);
+                        } else if ("Veterinario con más pacientes".equals(reporteSeleccionado)) {
+                            List<String[]> resultados = empleadoDAO.obtenerVeterinarioMasPacientes();
+                            String[] columnas = {"Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
+                            mostrarResultadosReporte(resultados, reportesFrame, columnas);
+                        } else if ("Empleado que atiende menos".equals(reporteSeleccionado)) {
+                            List<String[]> resultados = empleadoDAO.obtenerEmpleadoQueAtiendeMenos();
+                            String[] columnas = {"Nombre Completo", "Puesto", "Total Pacientes Atendidos"};
+                            mostrarResultadosReporte(resultados, reportesFrame, columnas);
+                        } else {
+                            JOptionPane.showMessageDialog(reportesFrame, "Opción de reporte no implementada", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(reportesFrame, "Por favor seleccione las fechas de inicio y fin.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
-                    JOptionPane.showMessageDialog(reportesFrame, "Opción de reporte no implementada", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(reportesFrame, "Seleccione un reporte.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 }
             } else {
-                JOptionPane.showMessageDialog(reportesFrame, "Por favor seleccione las fechas de inicio y fin.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(reportesFrame, "No hay reportes disponibles para seleccionar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             }
         });
 
@@ -257,27 +278,26 @@ public class EmpleadoGUI extends JPanel {
     }
 
     // Método para mostrar los resultados del reporte en una tabla
-    private void mostrarResultadosReporte(List<String[]> resultados, JFrame reportesFrame) {
+    private void mostrarResultadosReporte(List<String[]> resultados, JFrame reportesFrame, String[] columnas) {
         if (resultados.isEmpty()) {
             JOptionPane.showMessageDialog(reportesFrame, "No se encontraron resultados.", "Información", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        // Agrega la columna "Código de Empleado" además de las ya existentes
-        String[] columnas = {"Código Empleado", "Nombre Completo", "Puesto", "Promedio Duración (Horas)"};
         DefaultTableModel modeloReporte = new DefaultTableModel(columnas, 0);
 
         for (String[] resultado : resultados) {
-            modeloReporte.addRow(resultado);
+            modeloReporte.addRow(resultado);  // Añadir cada fila al modelo de la tabla
         }
 
         JTable tablaResultados = new JTable(modeloReporte);
         JScrollPane scrollPane = new JScrollPane(tablaResultados);
 
+        reportesFrame.getContentPane().removeAll();  // Limpiar el contenido actual del frame para evitar superposición
         reportesFrame.add(scrollPane, BorderLayout.CENTER);
-        reportesFrame.revalidate();
-        reportesFrame.repaint();
-        reportesFrame.setSize(600, 400);
+        reportesFrame.revalidate();  // Actualizar el frame
+        reportesFrame.repaint();  // Redibujar el frame
+        reportesFrame.setSize(600, 400);  // Ajustar el tamaño del frame
     }
 
     public static void main(String[] args) {
