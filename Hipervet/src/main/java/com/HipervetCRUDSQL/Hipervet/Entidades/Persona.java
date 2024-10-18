@@ -19,6 +19,9 @@ public class Persona {
         // Inicialización vacía si es necesario
     }
 
+    public Persona(int codigoPersona, String primerNombre, String segundoNombre, String tercerNombre, String primerApellido, String segundoApellido, String tercerApellido, LocalDate localDate, String tipoPersona) {
+    }
+
     public int getCodigoPersona() {
         return codigoPersona;
     }
