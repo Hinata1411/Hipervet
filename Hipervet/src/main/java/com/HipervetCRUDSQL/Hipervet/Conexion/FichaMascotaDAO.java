@@ -11,111 +11,176 @@ import java.util.List;
 
 public class FichaMascotaDAO extends Conexion {
 
-        // Método para crear una mascota
-        public boolean crearMascota(FichaMascota mascota) {
-            String sql = "INSERT INTO FichaMascota (NumeroFicha, codigoEspecie, CodigoRaza, Nombre, FechaNacimiento, Talla, Genero) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+    // Método para crear una mascota
+    public boolean crearMascota(FichaMascota mascota) {
+        String sql = "INSERT INTO FichaMascota (NumeroFicha, codigoEspecie, CodigoRaza, Nombre, FechaNacimiento, Talla, Genero) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql)) {
 
-                if (mascota.getNumeroFicha() <= 0) {
-                    throw new IllegalArgumentException("El número de ficha no puede ser negativo o cero.");
-                }
-                statement.setInt(1, mascota.getNumeroFicha());
-                statement.setString(2, mascota.getCodigoEspecie());
-                statement.setString(3, mascota.getCodigoRaza());
-                statement.setString(4, mascota.getNombre());
-                statement.setDate(5, java.sql.Date.valueOf(mascota.getFechaNacimiento()));
-                statement.setString(6, mascota.getTalla());
-                statement.setString(7, mascota.getGenero());
-
-                int affectedRows = statement.executeUpdate();
-                return affectedRows > 0;
-
-            } catch (SQLException e) {
-                System.err.println("Error al crear la mascota: " + e.getMessage());
-                return false;
+            if (mascota.getNumeroFicha() <= 0) {
+                throw new IllegalArgumentException("El número de ficha no puede ser negativo o cero.");
             }
+            statement.setInt(1, mascota.getNumeroFicha());
+            statement.setString(2, mascota.getCodigoEspecie());
+            statement.setString(3, mascota.getCodigoRaza());
+            statement.setString(4, mascota.getNombre());
+            statement.setDate(5, java.sql.Date.valueOf(mascota.getFechaNacimiento()));
+            statement.setString(6, mascota.getTalla());
+            statement.setString(7, mascota.getGenero());
+
+            int affectedRows = statement.executeUpdate();
+            return affectedRows > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error al crear la mascota: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Método para obtener todas las mascotas
+    public List<FichaMascota> obtenerMascotas() {
+        List<FichaMascota> mascotas = new ArrayList<>();
+        String sql = "SELECT NumeroFicha, codigoEspecie, CodigoRaza, Nombre, FechaNacimiento, Talla, Genero FROM FichaMascota";
+
+        try (Connection conn = obtenerConexion();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                FichaMascota mascota = new FichaMascota();
+                mascota.setNumeroFicha(rs.getInt("NumeroFicha"));
+                mascota.setCodigoEspecie(rs.getString("codigoEspecie"));
+                mascota.setCodigoRaza(rs.getString("CodigoRaza"));
+                mascota.setNombre(rs.getString("Nombre"));
+                mascota.setFechaNacimiento(rs.getDate("FechaNacimiento").toLocalDate());
+                mascota.setTalla(rs.getString("Talla"));
+                mascota.setGenero(rs.getString("Genero"));
+
+                mascotas.add(mascota);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener las mascotas: " + e.getMessage());
         }
 
-        // Método para obtener todas las mascotas
-        public List<FichaMascota> obtenerMascotas() {
-            List<FichaMascota> mascotas = new ArrayList<>();
-            String sql = "SELECT NumeroFicha, codigoEspecie, CodigoRaza, Nombre, FechaNacimiento, Talla, Genero FROM FichaMascota";
+        return mascotas;
+    }
 
-            try (Connection conn = obtenerConexion();
-                 PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
+    // Método para actualizar una mascota usando el NumeroFicha
+    public boolean actualizarMascota(int numeroFicha, FichaMascota mascotaActualizada) {
+        String sql = "UPDATE FichaMascota SET Codigoespecie = ?, CodigoRaza = ?, Nombre = ?, FechaNacimiento = ?, " +
+                "Talla = ?, Genero = ? WHERE NumeroFicha = ?";
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql)) {
 
-                while (rs.next()) {
-                    FichaMascota mascota = new FichaMascota();
-                    mascota.setNumeroFicha(rs.getInt("NumeroFicha"));
-                    mascota.setCodigoEspecie(rs.getString("codigoEspecie"));
-                    mascota.setCodigoRaza(rs.getString("CodigoRaza"));
-                    mascota.setNombre(rs.getString("Nombre"));
-                    mascota.setFechaNacimiento(rs.getDate("FechaNacimiento").toLocalDate());
-                    mascota.setTalla(rs.getString("Talla"));
-                    mascota.setGenero(rs.getString("Genero"));
+            statement.setString(1, mascotaActualizada.getCodigoEspecie());
+            statement.setString(2, mascotaActualizada.getCodigoRaza());
+            statement.setString(3, mascotaActualizada.getNombre());
+            statement.setDate(4, java.sql.Date.valueOf(mascotaActualizada.getFechaNacimiento()));
+            statement.setString(5, mascotaActualizada.getTalla());
+            statement.setString(6, mascotaActualizada.getGenero());
+            statement.setInt(7, numeroFicha);
 
-                    mascotas.add(mascota);
-                }
-            } catch (SQLException e) {
-                System.err.println("Error al obtener las mascotas: " + e.getMessage());
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error al actualizar la mascota: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Método para eliminar una mascota usando el NumeroFicha
+    public boolean eliminarMascota(int numeroFicha) {
+        String sql = "DELETE FROM FichaMascota WHERE NumeroFicha = ?";
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql)) {
+
+            statement.setInt(1, numeroFicha);
+            return statement.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la mascota: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Método para obtener el siguiente NumeroFicha disponible
+    public int obtenerSiguienteNumeroFicha() {
+        String sql = "SELECT ISNULL(MAX(NumeroFicha), 0) + 1 AS SiguienteNumeroFicha FROM FichaMascota";
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("SiguienteNumeroFicha");
             }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener el siguiente número de ficha: " + e.getMessage());
+        }
+        return 1; // Retornar 1 si no hay fichas en la tabla
+    }
 
-            return mascotas;
+    // Método para obtener las especies
+    public List<String[]> obtenerEspecies() {
+        List<String[]> especies = new ArrayList<>();
+        String sql = "SELECT CodigoEspecie, Descripcion FROM Especie";
+
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
+
+            while (rs.next()) {
+                String[] especie = new String[2];
+                especie[0] = rs.getString("CodigoEspecie");
+                especie[1] = rs.getString("Descripcion");
+                especies.add(especie);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener las especies: " + e.getMessage());
         }
 
-        // Método para actualizar una mascota usando el NumeroFicha
-        public boolean actualizarMascota(int numeroFicha, FichaMascota mascotaActualizada) {
-            String sql = "UPDATE FichaMascota SET Codigoespecie = ?, CodigoRaza = ?, Nombre = ?, FechaNacimiento = ?, " +
-                    "Talla = ?, Genero = ? WHERE NumeroFicha = ?";
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+        return especies;
+    }
 
-                statement.setString(1, mascotaActualizada.getCodigoEspecie());
-                statement.setString(2, mascotaActualizada.getCodigoRaza());
-                statement.setString(3, mascotaActualizada.getNombre());
-                statement.setDate(4, java.sql.Date.valueOf(mascotaActualizada.getFechaNacimiento()));
-                statement.setString(5, mascotaActualizada.getTalla());
-                statement.setString(6, mascotaActualizada.getGenero());
-                statement.setInt(7, numeroFicha);
+    // Método para obtener las razas
+    public List<String[]> obtenerRazas() {
+        List<String[]> razas = new ArrayList<>();
+        String sql = "SELECT codigoRaza, descripcion FROM Raza";
 
-                return statement.executeUpdate() > 0;
-            } catch (SQLException e) {
-                System.err.println("Error al actualizar la mascota: " + e.getMessage());
-                return false;
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
+
+            while (rs.next()) {
+                String[] raza = new String[2];
+                raza[0] = rs.getString("codigoRaza");
+                raza[1] = rs.getString("descripcion");
+                razas.add(raza);
             }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener las razas: " + e.getMessage());
         }
 
-        // Método para eliminar una mascota usando el NumeroFicha
-        public boolean eliminarMascota(int numeroFicha) {
-            String sql = "DELETE FROM FichaMascota WHERE NumeroFicha = ?";
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+        return razas;
+    }
+    // Método para obtener los clientes
+    public List<String[]> obtenerClientes() {
+        List<String[]> clientes = new ArrayList<>();
+        String sql = "SELECT CodigoCliente, CONCAT(primerNombre, ' ', primerApellido) AS NombreCliente FROM Cliente";
 
-                statement.setInt(1, numeroFicha);
-                return statement.executeUpdate() > 0;
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement statement = conexion.prepareStatement(sql);
+             ResultSet rs = statement.executeQuery()) {
 
-            } catch (SQLException e) {
-                System.err.println("Error al eliminar la mascota: " + e.getMessage());
-                return false;
+            while (rs.next()) {
+                String[] cliente = new String[2];
+                cliente[0] = rs.getString("CodigoCliente");
+                cliente[1] = rs.getString("NombreCliente");
+                clientes.add(cliente);
             }
+        } catch (SQLException e) {
+            System.err.println("Error al obtener los clientes: " + e.getMessage());
         }
 
-        // Método para obtener el siguiente NumeroFicha disponible
-        public int obtenerSiguienteNumeroFicha() {
-            String sql = "SELECT ISNULL(MAX(NumeroFicha), 0) + 1 AS SiguienteNumeroFicha FROM FichaMascota";
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql);
-                 ResultSet rs = statement.executeQuery()) {
-
-                if (rs.next()) {
-                    return rs.getInt("SiguienteNumeroFicha");
-                }
-            } catch (SQLException e) {
-                System.err.println("Error al obtener el siguiente número de ficha: " + e.getMessage());
-            }
-            return 1; // Retornar 1 si no hay fichas en la tabla
-        }
+        return clientes;
+    }
 }

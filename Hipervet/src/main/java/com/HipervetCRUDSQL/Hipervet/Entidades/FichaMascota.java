@@ -11,8 +11,10 @@ public class FichaMascota {
         private LocalDate fechaNacimiento;
         private String talla;
         private String genero;
+        private int codigoCliene;
+        private int codigoCliente;
 
-        public int getNumeroFicha() {
+    public int getNumeroFicha() {
             return numeroFicha;
         }
 
@@ -68,4 +70,7 @@ public class FichaMascota {
             this.genero = genero;
         }
 
+        public void setCodigoCliente(int codigoCliente) {this.codigoCliente = codigoCliente;}
+
+        public int getCodigoCliente() { return codigoCliene;}
 }

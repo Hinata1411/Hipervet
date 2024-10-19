@@ -19,7 +19,11 @@ public class MascotaGUI extends JPanel {
         private FichaMascotaDAO mascotaDAO = new FichaMascotaDAO();
         private JTable tablaMascotas;
         private DefaultTableModel modeloTabla;
-        private JTextField numeroFichaField, especieField, codigoRazaField, nombreField, tallaField, generoField;
+        private JTextField numeroFichaField, nombreField;
+        private JComboBox<String> especieComboBox; // JComboBox para especies
+        private JComboBox<String> razaComboBox; // JComboBox para razas
+        private JComboBox<String> tallaComboBox; // JComboBox para tallas
+        private JComboBox<String> generoComboBox; // JComboBox para género
         private JDateChooser fechaNacimientoChooser;
 
         public MascotaGUI() {
@@ -27,23 +31,25 @@ public class MascotaGUI extends JPanel {
 
             // Panel principal para contener el formulario y los botones
             JPanel panelIzquierdo = new JPanel();
-            panelIzquierdo.setLayout(new BorderLayout()); // Usamos BorderLayout para organizar el formulario y los botones
+            panelIzquierdo.setLayout(new BorderLayout());
 
             // Formulario para ingresar los datos de la mascota
-            JPanel formularioPanel = new JPanel(new GridLayout(7, 2, 5, 5));
+            JPanel formularioPanel = new JPanel(new GridLayout(8, 2, 5, 5));
 
             formularioPanel.add(new JLabel("Número Ficha:"));
             numeroFichaField = new JTextField();
-            numeroFichaField.setEnabled(false); // Deshabilitar ya que se generará automáticamente
+            numeroFichaField.setEnabled(false);
             formularioPanel.add(numeroFichaField);
 
             formularioPanel.add(new JLabel("Especie:"));
-            especieField = new JTextField();
-            formularioPanel.add(especieField);
+            especieComboBox = new JComboBox<>();
+            cargarEspeciesEnComboBox(); // Llenar el JComboBox con las especies
+            formularioPanel.add(especieComboBox);
 
-            formularioPanel.add(new JLabel("Código Raza:"));
-            codigoRazaField = new JTextField();
-            formularioPanel.add(codigoRazaField);
+            formularioPanel.add(new JLabel("Raza:"));
+            razaComboBox = new JComboBox<>();
+            cargarRazasEnComboBox(); // Llenar el JComboBox con las razas
+            formularioPanel.add(razaComboBox);
 
             formularioPanel.add(new JLabel("Nombre:"));
             nombreField = new JTextField();
@@ -54,12 +60,12 @@ public class MascotaGUI extends JPanel {
             formularioPanel.add(fechaNacimientoChooser);
 
             formularioPanel.add(new JLabel("Talla:"));
-            tallaField = new JTextField();
-            formularioPanel.add(tallaField);
+            tallaComboBox = new JComboBox<>(new String[]{"1 - Pequeña", "2 - Mediana", "3 - Grande"});
+            formularioPanel.add(tallaComboBox);
 
             formularioPanel.add(new JLabel("Género:"));
-            generoField = new JTextField();
-            formularioPanel.add(generoField);
+            generoComboBox = new JComboBox<>(new String[]{"H", "M"}); // Opciones de género
+            formularioPanel.add(generoComboBox);
 
             // Panel para los botones de agregar, actualizar y eliminar
             JPanel botonesPanel = new JPanel(new GridLayout(3, 1, 10, 10));
@@ -91,14 +97,12 @@ public class MascotaGUI extends JPanel {
             });
             botonesPanel.add(eliminarButton);
 
-            // Añadimos los paneles de formulario y botones al panel izquierdo
-            panelIzquierdo.add(formularioPanel, BorderLayout.CENTER); // Formulario arriba
-            panelIzquierdo.add(botonesPanel, BorderLayout.SOUTH); // Botones abajo
-
-            add(panelIzquierdo, BorderLayout.WEST); // Añadimos el panel izquierdo a la interfaz
+            panelIzquierdo.add(formularioPanel, BorderLayout.CENTER);
+            panelIzquierdo.add(botonesPanel, BorderLayout.SOUTH);
+            add(panelIzquierdo, BorderLayout.WEST);
 
             // Tabla para mostrar las mascotas
-            String[] columnas = {"Número Ficha", "Especie", "Código Raza", "Nombre", "Fecha de Nacimiento", "Talla", "Género"};
+            String[] columnas = {"Número Ficha", "Especie", "Raza", "Nombre", "Fecha de Nacimiento", "Talla", "Género"};
             modeloTabla = new DefaultTableModel(columnas, 0);
             tablaMascotas = new JTable(modeloTabla);
 
@@ -115,48 +119,84 @@ public class MascotaGUI extends JPanel {
             });
 
             JScrollPane scrollPane = new JScrollPane(tablaMascotas);
-            add(scrollPane, BorderLayout.CENTER); // La tabla ocupará el espacio central
+            add(scrollPane, BorderLayout.CENTER);
 
             cargarMascotas();
         }
 
-        private void cargarMascotas() {
-            modeloTabla.setRowCount(0);
-            List<FichaMascota> mascotas = mascotaDAO.obtenerMascotas();
-            for (FichaMascota mascota : mascotas) {
-                modeloTabla.addRow(new Object[]{
-                        mascota.getNumeroFicha(),
-                        mascota.getCodigoEspecie(),
-                        mascota.getCodigoRaza(),
-                        mascota.getNombre(),
-                        mascota.getFechaNacimiento(),
-                        mascota.getTalla(),
-                        mascota.getGenero()
-                });
+        // Método para llenar el JComboBox con las especies
+        private void cargarEspeciesEnComboBox() {
+            List<String[]> especies = mascotaDAO.obtenerEspecies();
+            especieComboBox.removeAllItems();
+            for (String[] especie : especies) {
+                especieComboBox.addItem(especie[0] + " - " + especie[1]);
             }
         }
 
-        private void cargarDatosEnFormulario() {
+        // Método para llenar el JComboBox con las razas
+        private void cargarRazasEnComboBox() {
+            List<String[]> razas = mascotaDAO.obtenerRazas();
+            razaComboBox.removeAllItems();
+            for (String[] raza : razas) {
+                razaComboBox.addItem(raza[0] + " - " + raza[1]);
+            }
+        }
+
+    private void cargarMascotas() {
+        modeloTabla.setRowCount(0);
+        List<FichaMascota> mascotas = mascotaDAO.obtenerMascotas();
+        for (FichaMascota mascota : mascotas) {
+            modeloTabla.addRow(new Object[]{
+                    mascota.getNumeroFicha(),
+                    mascota.getCodigoEspecie() != null ? mascota.getCodigoEspecie() : "Desconocido",
+                    mascota.getCodigoRaza() != null ? mascota.getCodigoRaza() : "Desconocido",
+                    mascota.getNombre() != null ? mascota.getNombre() : "Desconocido",
+                    mascota.getFechaNacimiento() != null ? mascota.getFechaNacimiento() : "Desconocida",
+                    getDescripcionTalla(mascota.getTalla()), // Obtener descripción de la talla
+                    mascota.getGenero() != null ? mascota.getGenero() : "Desconocido"
+            });
+        }
+    }
+
+
+    private String getDescripcionTalla(String talla) {
+        if (talla == null) {
+            return "Desconocida";
+        }
+        switch (talla) {
+            case "1":
+                return "Pequeña";
+            case "2":
+                return "Mediana";
+            case "3":
+                return "Grande";
+            default:
+                return "Desconocida";
+        }
+    }
+
+
+    private void cargarDatosEnFormulario() {
             int filaSeleccionada = tablaMascotas.getSelectedRow();
             if (filaSeleccionada != -1) {
                 numeroFichaField.setText(modeloTabla.getValueAt(filaSeleccionada, 0).toString());
-                especieField.setText(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
-                codigoRazaField.setText(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
+                especieComboBox.setSelectedItem(modeloTabla.getValueAt(filaSeleccionada, 1).toString());
+                razaComboBox.setSelectedItem(modeloTabla.getValueAt(filaSeleccionada, 2).toString());
                 nombreField.setText(modeloTabla.getValueAt(filaSeleccionada, 3).toString());
                 fechaNacimientoChooser.setDate(Date.valueOf(modeloTabla.getValueAt(filaSeleccionada, 4).toString()));
-                tallaField.setText(modeloTabla.getValueAt(filaSeleccionada, 5).toString());
-                generoField.setText(modeloTabla.getValueAt(filaSeleccionada, 6).toString());
+                tallaComboBox.setSelectedItem(getDescripcionTalla(modeloTabla.getValueAt(filaSeleccionada, 5).toString()));
+                generoComboBox.setSelectedItem(modeloTabla.getValueAt(filaSeleccionada, 6).toString());
             }
         }
 
         private void limpiarCampos() {
             numeroFichaField.setText("");
-            especieField.setText("");
-            codigoRazaField.setText("");
+            especieComboBox.setSelectedIndex(-1);
+            razaComboBox.setSelectedIndex(-1);
             nombreField.setText("");
             fechaNacimientoChooser.setDate(null);
-            tallaField.setText("");
-            generoField.setText("");
+            tallaComboBox.setSelectedIndex(-1);
+            generoComboBox.setSelectedIndex(-1);
         }
 
         private void agregarMascota() {
@@ -166,12 +206,30 @@ public class MascotaGUI extends JPanel {
 
                 FichaMascota nuevaMascota = new FichaMascota();
                 nuevaMascota.setNumeroFicha(numeroFicha);
-                nuevaMascota.setCodigoEspecie(especieField.getText());
-                nuevaMascota.setCodigoRaza(codigoRazaField.getText());
+
+                // Obtener el código de especie seleccionado en el JComboBox
+                String seleccionEspecie = (String) especieComboBox.getSelectedItem();
+                if (seleccionEspecie != null) {
+                    String[] partesEspecie = seleccionEspecie.split(" - ");
+                    nuevaMascota.setCodigoEspecie(partesEspecie[0]);
+                }
+
+                // Obtener el código de raza seleccionado en el JComboBox
+                String seleccionRaza = (String) razaComboBox.getSelectedItem();
+                if (seleccionRaza != null) {
+                    String[] partesRaza = seleccionRaza.split(" - ");
+                    nuevaMascota.setCodigoRaza(partesRaza[0]);
+                }
+
+                // Obtener el género seleccionado en el JComboBox
+                String seleccionGenero = (String) generoComboBox.getSelectedItem();
+                if (seleccionGenero != null) {
+                    // Guardar solo la inicial del género
+                    nuevaMascota.setGenero(seleccionGenero.substring(0, 1)); // Almacena 'H' o 'M'
+                }
+
                 nuevaMascota.setNombre(nombreField.getText());
                 nuevaMascota.setFechaNacimiento(new java.sql.Date(fechaNacimientoChooser.getDate().getTime()).toLocalDate());
-                nuevaMascota.setTalla(tallaField.getText());
-                nuevaMascota.setGenero(generoField.getText());
 
                 if (mascotaDAO.crearMascota(nuevaMascota)) {
                     JOptionPane.showMessageDialog(this, "Mascota agregada exitosamente.");
@@ -192,12 +250,35 @@ public class MascotaGUI extends JPanel {
 
                 FichaMascota mascotaActualizada = new FichaMascota();
                 mascotaActualizada.setNumeroFicha(numeroFicha);
-                mascotaActualizada.setCodigoEspecie(especieField.getText());
-                mascotaActualizada.setCodigoRaza(codigoRazaField.getText());
+
+                // Obtener el código de especie seleccionado en el JComboBox
+                String seleccionEspecie = (String) especieComboBox.getSelectedItem();
+                if (seleccionEspecie != null) {
+                    String[] partesEspecie = seleccionEspecie.split(" - ");
+                    mascotaActualizada.setCodigoEspecie(partesEspecie[0]);
+                }
+
+                // Obtener el código de raza seleccionado en el JComboBox
+                String seleccionRaza = (String) razaComboBox.getSelectedItem();
+                if (seleccionRaza != null) {
+                    String[] partesRaza = seleccionRaza.split(" - ");
+                    mascotaActualizada.setCodigoRaza(partesRaza[0]);
+                }
+
+                // Obtener la talla seleccionada en el JComboBox
+                String seleccionTalla = (String) tallaComboBox.getSelectedItem();
+                if (seleccionTalla != null) {
+                    mascotaActualizada.setTalla(seleccionTalla.split(" - ")[0]);
+                }
+
+                // Obtener el género seleccionado en el JComboBox
+                String seleccionGenero = (String) generoComboBox.getSelectedItem();
+                if (seleccionGenero != null) {
+                    mascotaActualizada.setGenero(seleccionGenero);
+                }
+
                 mascotaActualizada.setNombre(nombreField.getText());
                 mascotaActualizada.setFechaNacimiento(new java.sql.Date(fechaNacimientoChooser.getDate().getTime()).toLocalDate());
-                mascotaActualizada.setTalla(tallaField.getText());
-                mascotaActualizada.setGenero(generoField.getText());
 
                 if (mascotaDAO.actualizarMascota(numeroFicha, mascotaActualizada)) {
                     JOptionPane.showMessageDialog(this, "Mascota actualizada exitosamente.");
@@ -230,4 +311,7 @@ public class MascotaGUI extends JPanel {
             frame.add(new MascotaGUI());
             frame.setVisible(true);
         }
-}
+    }
+
+
+
