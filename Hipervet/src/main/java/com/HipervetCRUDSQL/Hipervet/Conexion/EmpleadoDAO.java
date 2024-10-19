@@ -87,32 +87,42 @@ public class EmpleadoDAO extends Conexion {
 
         // Método para asignar o crear un código de empleado para una persona
         public boolean asignarCodigoEmpleado(int codigoPersona, int codigoEmpleado) {
-            String verificarSql = "SELECT COUNT(*) FROM Empleado WHERE CodigoPersona = ?";
+            String verificarSql = "SELECT COUNT(*) FROM Empleado WHERE CodigoEmpleado = ?";
             String insertarSql = "INSERT INTO Empleado (CodigoEmpleado, CodigoPersona) VALUES (?, ?)";
             String actualizarSql = "UPDATE Empleado SET CodigoEmpleado = ? WHERE CodigoPersona = ?";
 
             try (Connection conexion = obtenerConexion();
-                 PreparedStatement verificarStatement = conexion.prepareStatement(verificarSql)) {
+                 PreparedStatement verificarStmt = conexion.prepareStatement(verificarSql)) {
 
-                // Verificar si ya existe un empleado con el código de persona
-                verificarStatement.setInt(1, codigoPersona);
-                ResultSet rs = verificarStatement.executeQuery();
+                // Verificar si ya existe un empleado con el mismo codigoEmpleado
+                verificarStmt.setInt(1, codigoEmpleado);
+                ResultSet rs = verificarStmt.executeQuery();
                 rs.next();
-                int count = rs.getInt(1);
+                if (rs.getInt(1) > 0) {
+                    System.err.println("El código de empleado ya existe.");
+                    return false;
+                }
 
-                if (count > 0) {
-                    // Si ya existe, actualizar el código de empleado
-                    try (PreparedStatement actualizarStatement = conexion.prepareStatement(actualizarSql)) {
-                        actualizarStatement.setInt(1, codigoEmpleado);
-                        actualizarStatement.setInt(2, codigoPersona);
-                        return actualizarStatement.executeUpdate() > 0;
-                    }
-                } else {
-                    // Si no existe, insertar un nuevo registro de empleado
-                    try (PreparedStatement insertarStatement = conexion.prepareStatement(insertarSql)) {
-                        insertarStatement.setInt(1, codigoEmpleado);
-                        insertarStatement.setInt(2, codigoPersona);
-                        return insertarStatement.executeUpdate() > 0;
+                // Verificar si ya existe un registro para la persona y actualizarlo
+                String verificarPersonaSql = "SELECT COUNT(*) FROM Empleado WHERE CodigoPersona = ?";
+                try (PreparedStatement verificarPersonaStmt = conexion.prepareStatement(verificarPersonaSql)) {
+                    verificarPersonaStmt.setInt(1, codigoPersona);
+                    rs = verificarPersonaStmt.executeQuery();
+                    rs.next();
+                    if (rs.getInt(1) > 0) {
+                        // Actualizar si ya existe
+                        try (PreparedStatement actualizarStmt = conexion.prepareStatement(actualizarSql)) {
+                            actualizarStmt.setInt(1, codigoEmpleado);
+                            actualizarStmt.setInt(2, codigoPersona);
+                            return actualizarStmt.executeUpdate() > 0;
+                        }
+                    } else {
+                        // Insertar si no existe
+                        try (PreparedStatement insertarStmt = conexion.prepareStatement(insertarSql)) {
+                            insertarStmt.setInt(1, codigoEmpleado);
+                            insertarStmt.setInt(2, codigoPersona);
+                            return insertarStmt.executeUpdate() > 0;
+                        }
                     }
                 }
             } catch (SQLException e) {
@@ -121,7 +131,8 @@ public class EmpleadoDAO extends Conexion {
             return false;
         }
 
-        // Método para obtener todos los puestos disponibles
+
+    // Método para obtener todos los puestos disponibles
         public List<String[]> obtenerPuestos() {
             List<String[]> puestos = new ArrayList<>();
             String sql = "SELECT CodigoPuesto, Descripcion FROM puesto";
@@ -296,4 +307,18 @@ public class EmpleadoDAO extends Conexion {
         reportesFrame.setSize(600, 400);
     }
 
+    // Método para eliminar la asignación de empleado y sus relaciones
+    public boolean eliminarAsignacionEmpleado(int codigoEmpleado) {
+        String sql = "DELETE FROM Empleado WHERE CodigoEmpleado = ?";
+        try (Connection conexion = obtenerConexion();
+             PreparedStatement stmt = conexion.prepareStatement(sql)) {
+
+            stmt.setInt(1, codigoEmpleado);
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Error al eliminar la asignación de empleado: " + e.getMessage());
+        }
+        return false;
+    }
 }

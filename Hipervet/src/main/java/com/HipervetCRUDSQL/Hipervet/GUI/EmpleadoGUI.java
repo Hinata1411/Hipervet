@@ -64,6 +64,11 @@ public class EmpleadoGUI extends JPanel {
         JPanel botonAbajoPanel = new JPanel();
         botonAbajoPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
+        JButton eliminarAsignacionButton = new JButton("Eliminar Asignación de Empleado");
+        eliminarAsignacionButton.addActionListener(e -> eliminarAsignacionEmpleado());
+        botonAbajoPanel.add(eliminarAsignacionButton);
+
+
         JButton actualizarButton = new JButton("Actualizar");
         actualizarButton.addActionListener(e -> cargarEmpleados());
         botonAbajoPanel.add(actualizarButton);
@@ -300,12 +305,40 @@ public class EmpleadoGUI extends JPanel {
         reportesFrame.setSize(600, 400);  // Ajustar el tamaño del frame
     }
 
-    public static void main(String[] args) {
-            JFrame frame = new JFrame("Empleado GUI");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(1000, 600);
-            frame.add(new EmpleadoGUI());
-            frame.setVisible(true);
+    private void eliminarAsignacionEmpleado() {
+        int filaSeleccionada = tablaEmpleados.getSelectedRow();
+        if (filaSeleccionada != -1) {
+            Object codigoEmpleadoObj = modeloTabla.getValueAt(filaSeleccionada, 0);
+            if (codigoEmpleadoObj != null) {
+                try {
+                    int codigoEmpleado = Integer.parseInt(codigoEmpleadoObj.toString());
+                    int confirmacion = JOptionPane.showConfirmDialog(this, "¿Está seguro de que desea eliminar la asignación?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+                    if (confirmacion == JOptionPane.YES_OPTION) {
+                        if (empleadoDAO.eliminarAsignacionEmpleado(codigoEmpleado)) {
+                            JOptionPane.showMessageDialog(this, "Asignación de empleado eliminada exitosamente.");
+                            cargarEmpleados();
+                        } else {
+                            JOptionPane.showMessageDialog(this, "No se pudo eliminar la asignación del empleado.", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Código de empleado inválido.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Seleccione un empleado con un código válido.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Por favor, seleccione un empleado para eliminar la asignación.", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
+    }
 
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Empleado GUI");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 600);
+        frame.add(new EmpleadoGUI());
+        frame.setVisible(true);
+    }
 }
+

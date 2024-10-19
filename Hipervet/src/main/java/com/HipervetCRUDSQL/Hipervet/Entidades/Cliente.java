@@ -21,29 +21,31 @@ public class Cliente {
         private String descripcionPuesto;
 
         public Cliente() {
+
             this.codigoCliente = codigoCliente;
         }
 
         // Getters y Setters para los nuevos campos
+
         public int getCodigoCliente() {
             return codigoCliente;
         }
-
         public void setCodigoCliente(int codigocliente) {
             this.codigoCliente = codigocliente;
         }
-
         public int getCodigoPersona() {
             return codigoPersona;
         }
-
         public void setCodigoPersona(int codigoPersona) {
+
             this.codigoPersona = codigoPersona;
         }
         public String getPrimerNombre() {
+
             return primerNombre;
         }
         public void setPrimerNombre(String primerNombre) {
+
             this.primerNombre = primerNombre;
         }
 
@@ -51,6 +53,7 @@ public class Cliente {
             return segundoNombre;
         }
         public void setSegundoNombre(String segundoNombre) {
+
             this.segundoNombre = segundoNombre;
         }
 

@@ -101,20 +101,47 @@ public class PersonaDAO extends Conexion {
 
         // Método para eliminar una persona usando el códigoPersona
         public boolean eliminarPersona(int codigoPersona) {
-            String sql = "DELETE FROM Persona WHERE CodigoPersona = ?";
-            try (Connection conexion = obtenerConexion();
-                 PreparedStatement statement = conexion.prepareStatement(sql)) {
+            String eliminarCitasSql = "DELETE FROM Cita WHERE CodigoCliente = (SELECT CodigoCliente FROM Cliente WHERE CodigoPersona = ?)";
+            String eliminarClienteSql = "DELETE FROM Cliente WHERE CodigoPersona = ?";
+            String eliminarPersonaSql = "DELETE FROM Persona WHERE CodigoPersona = ?";
 
-                statement.setInt(1, codigoPersona);
-                return statement.executeUpdate() > 0;
+            try (Connection conexion = obtenerConexion()) {
+                // Desactivar auto-commit para manejo de transacciones
+                conexion.setAutoCommit(false);
 
+                try (PreparedStatement eliminarCitasStatement = conexion.prepareStatement(eliminarCitasSql);
+                     PreparedStatement eliminarClienteStatement = conexion.prepareStatement(eliminarClienteSql);
+                     PreparedStatement eliminarPersonaStatement = conexion.prepareStatement(eliminarPersonaSql)) {
+
+                    // Eliminar las citas asociadas
+                    eliminarCitasStatement.setInt(1, codigoPersona);
+                    eliminarCitasStatement.executeUpdate();
+
+                    // Eliminar el cliente
+                    eliminarClienteStatement.setInt(1, codigoPersona);
+                    eliminarClienteStatement.executeUpdate();
+
+                    // Eliminar la persona
+                    eliminarPersonaStatement.setInt(1, codigoPersona);
+                    eliminarPersonaStatement.executeUpdate();
+
+                    // Confirmar transacción
+                    conexion.commit();
+                    return true;
+
+                } catch (SQLException e) {
+                    // Revertir cambios en caso de error
+                    conexion.rollback();
+                    System.err.println("Error al eliminar la persona: " + e.getMessage());
+                }
             } catch (SQLException e) {
-                System.err.println("Error al eliminar la persona: " + e.getMessage());
-                return false;
+                System.err.println("Error de conexión: " + e.getMessage());
             }
+            return false;
         }
 
-        // Método para obtener el siguiente CodigoPersona disponible
+
+    // Método para obtener el siguiente CodigoPersona disponible
         public int obtenerSiguienteCodigoPersona() {
             String sql = "SELECT ISNULL(MAX(CodigoPersona), 0) + 1 AS SiguienteCodigoPersona FROM Persona";
             try (Connection conexion = obtenerConexion();
