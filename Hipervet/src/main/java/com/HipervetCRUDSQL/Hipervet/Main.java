@@ -12,11 +12,11 @@ import static javafx.application.Application.launch;
 
 public class Main {
     public static void main(String[] args) {
-
-        // Crear y mostrar la ventana de HomeGUI
+        // Iniciar la aplicación en el hilo de despacho de eventos de Swing
         SwingUtilities.invokeLater(() -> {
-            HomeGUI home = new HomeGUI();
-            home.setVisible(true);
+            // Crear y mostrar la ventana de login
+            LoginGUI login = new LoginGUI();
+            login.setVisible(true);
         });
     }
 }
