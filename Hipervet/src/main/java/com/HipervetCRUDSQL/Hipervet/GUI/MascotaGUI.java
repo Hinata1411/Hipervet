@@ -25,6 +25,11 @@ public class MascotaGUI extends JPanel {
         public MascotaGUI() {
             setLayout(new BorderLayout());
 
+            // Panel principal para contener el formulario y los botones
+            JPanel panelIzquierdo = new JPanel();
+            panelIzquierdo.setLayout(new BorderLayout()); // Usamos BorderLayout para organizar el formulario y los botones
+
+            // Formulario para ingresar los datos de la mascota
             JPanel formularioPanel = new JPanel(new GridLayout(7, 2, 5, 5));
 
             formularioPanel.add(new JLabel("Número Ficha:"));
@@ -56,6 +61,7 @@ public class MascotaGUI extends JPanel {
             generoField = new JTextField();
             formularioPanel.add(generoField);
 
+            // Panel para los botones de agregar, actualizar y eliminar
             JPanel botonesPanel = new JPanel(new GridLayout(3, 1, 10, 10));
 
             JButton agregarButton = new JButton("Agregar");
@@ -85,8 +91,13 @@ public class MascotaGUI extends JPanel {
             });
             botonesPanel.add(eliminarButton);
 
-            add(botonesPanel, BorderLayout.EAST);
+            // Añadimos los paneles de formulario y botones al panel izquierdo
+            panelIzquierdo.add(formularioPanel, BorderLayout.CENTER); // Formulario arriba
+            panelIzquierdo.add(botonesPanel, BorderLayout.SOUTH); // Botones abajo
 
+            add(panelIzquierdo, BorderLayout.WEST); // Añadimos el panel izquierdo a la interfaz
+
+            // Tabla para mostrar las mascotas
             String[] columnas = {"Número Ficha", "Especie", "Código Raza", "Nombre", "Fecha de Nacimiento", "Talla", "Género"};
             modeloTabla = new DefaultTableModel(columnas, 0);
             tablaMascotas = new JTable(modeloTabla);
@@ -104,8 +115,7 @@ public class MascotaGUI extends JPanel {
             });
 
             JScrollPane scrollPane = new JScrollPane(tablaMascotas);
-            add(scrollPane, BorderLayout.CENTER);
-            add(formularioPanel, BorderLayout.WEST);
+            add(scrollPane, BorderLayout.CENTER); // La tabla ocupará el espacio central
 
             cargarMascotas();
         }

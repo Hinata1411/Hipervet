@@ -1,6 +1,5 @@
 package com.HipervetCRUDSQL.Hipervet.GUI;
 
-import com.HipervetCRUDSQL.Hipervet.Conexion.EmpleadoDAO;
 import com.HipervetCRUDSQL.Hipervet.Conexion.PersonaDAO;
 import com.HipervetCRUDSQL.Hipervet.Entidades.Empleado;
 import com.HipervetCRUDSQL.Hipervet.Entidades.Persona;
@@ -14,8 +13,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.Date;
 import java.util.List;
 

@@ -10,6 +10,9 @@ import java.awt.event.WindowStateListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+
+import static java.awt.Font.TRUETYPE_FONT;
 
 public class HomeGUI extends JFrame {
 
@@ -21,6 +24,7 @@ public class HomeGUI extends JFrame {
         private JButton logoutButton;
         private boolean isDarkMode = false;
         private CardLayout cardLayout;
+        private JPanel headerPanel; // Agregado para controlar el color del header
 
         public HomeGUI() {
             setTitle("Home - HiperVet");
@@ -42,8 +46,8 @@ public class HomeGUI extends JFrame {
             });
 
             // Crear el header (parte superior) para el buscador y los botones
-            JPanel headerPanel = new JPanel(new BorderLayout());
-            headerPanel.setBackground(new Color(0, 153, 204)); // Azul más pastel
+            headerPanel = new JPanel(new BorderLayout());
+            headerPanel.setBackground(new Color(25, 117, 11));
 
             // Campo de búsqueda
             searchField = new JTextField(20);
@@ -53,8 +57,7 @@ public class HomeGUI extends JFrame {
             // Botón de búsqueda (lupa)
             searchButton = new JButton("\uD83D\uDD0D"); // Emoji de lupa
             searchButton.setFocusable(false);
-            searchButton.setBackground(new Color(0, 204, 204)); // Color pastel
-            searchButton.setBorder(BorderFactory.createEmptyBorder());
+            searchButton.setBackground(new Color(25, 117, 11));
             searchButton.setPreferredSize(new Dimension(40, 30));
             searchButton.addActionListener(new ActionListener() {
                 @Override
@@ -65,13 +68,13 @@ public class HomeGUI extends JFrame {
             });
 
             // Botón para cambiar entre modo claro y oscuro
-            toggleThemeButton = new JButton("Modo Oscuro");
-            toggleThemeButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    toggleTheme();
-                }
-            });
+//            toggleThemeButton = new JButton("Modo Oscuro");
+//            toggleThemeButton.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//                    toggleTheme();
+//                }
+//            });
 
             // Botón para cerrar sesión
             logoutButton = new JButton("Cerrar Sesión");
@@ -92,15 +95,15 @@ public class HomeGUI extends JFrame {
             // Panel para los botones de "Modo Oscuro" y "Cerrar Sesión"
             JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
             buttonPanel.setOpaque(false);
-            buttonPanel.add(toggleThemeButton);
-            buttonPanel.add(logoutButton);
+//            buttonPanel.add(toggleThemeButton);
+              buttonPanel.add(logoutButton);
 
             headerPanel.add(buttonPanel, BorderLayout.EAST);
             headerPanel.setPreferredSize(new Dimension(getWidth(), 50));
 
             // Crear el panel lateral (sidebar)
             sidebar = new JPanel();
-            sidebar.setBackground(new Color(173, 216, 230)); // Azul pastel
+            sidebar.setBackground(new Color(25, 117, 11));
             sidebar.setPreferredSize(new Dimension(200, getHeight()));
             sidebar.setLayout(new BoxLayout(sidebar, BoxLayout.Y_AXIS));
 
@@ -108,7 +111,7 @@ public class HomeGUI extends JFrame {
             Font buttonFont = new Font("Arial", Font.PLAIN, 16);
 
             // Crear y añadir botones al sidebar con iconos
-            String[] options = {"Home", "Empleado", "Mascotas", "Citas", "Diagnósticos", "Persona"};
+            String[] options = {"Home", "Persona", "Empleado", "Clientes", "Mascotas", "Citas", "Diagnosticos"};
             String[] iconPaths = {
                     "src/icons/home.png",
                     "src/icons/person.png",
@@ -129,7 +132,7 @@ public class HomeGUI extends JFrame {
                 {
                     try {
                         // Cargar la imagen de la carpeta de recursos
-                        BufferedImage bufferedImage = ImageIO.read(new File("C:\\Users\\ASUS\\Desktop\\Hipervet\\Hipervet\\src\\main\\java\\com\\HipervetCRUDSQL\\Hipervet\\Resurces\\Hipervetimage.jpg"));
+                        BufferedImage bufferedImage = ImageIO.read(new File("C:\\Users\\ASUS\\Desktop\\Hipervet\\Hipervet\\src\\main\\java\\com\\HipervetCRUDSQL\\Hipervet\\Resurces\\Hiverpetimage.png"));
                         image = bufferedImage;
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -140,13 +143,22 @@ public class HomeGUI extends JFrame {
                 protected void paintComponent(Graphics g) {
                     super.paintComponent(g);
                     if (image != null) {
-                        // Escalar la imagen al tamaño del panel
-                        int width = getWidth();
-                        int height = getHeight();
-                        g.drawImage(image, 0, 0, width, height, this);
+                        // Escalar la imagen a un tamaño más pequeño (por ejemplo, 300x300)
+                        int imgWidth = 700;
+                        int imgHeight = 700;
+                        int x = (getWidth() - imgWidth) / 2; // Centrar horizontalmente
+                        int y = (getHeight() - imgHeight) / 2 + 50; // Centrar verticalmente con un pequeño desplazamiento
+                        g.drawImage(image, x, y, imgWidth, imgHeight, this);
                     }
                 }
             };
+
+            // Agregar el texto "Hipervet"
+            JLabel welcomeLabel = new JLabel("Hipervet", SwingConstants.CENTER);
+            welcomeLabel.setFont(new Font("Arial", Font.BOLD, 100)); // Aumentar el tamaño del texto
+            welcomeLabel.setForeground(new Color(25, 117, 11));
+            welcomeLabel.setPreferredSize(new Dimension(getWidth(), 100)); // Hacer el JLabel más grande
+            homePanel.add(welcomeLabel, BorderLayout.NORTH); // Añadir el texto al panel Home
 
             // Agregar el panel de inicio al contentPanel
             contentPanel.add(homePanel, "Home");
@@ -160,11 +172,14 @@ public class HomeGUI extends JFrame {
             // Agregar el panel de Mascotas
             contentPanel.add(new MascotaGUI(), "Mascotas");
 
+            // Agregar el panel de Clientes
+            contentPanel.add(new ClienteGUI(), "Clientes");
+
             // Agregar el panel de citas
             contentPanel.add(new CitasGUI(), "Citas");
 
             // Agregar el panel de Diagnósticos
-            contentPanel.add(new DiagnosticGUI(), "Diagnósticos");
+            contentPanel.add(new DiagnosticGUI(), "Diagnosticos");
 
             // Agregar ActionListener a los botones del sidebar
             for (int i = 0; i < options.length; i++) {
@@ -172,7 +187,7 @@ public class HomeGUI extends JFrame {
                 button.setFont(buttonFont);
                 button.setAlignmentX(Component.CENTER_ALIGNMENT);
                 button.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-                button.setIcon(new ImageIcon(iconPaths[i]));
+//                button.setIcon(new ImageIcon(iconPaths[i]));
 
                 // Agregar ActionListener
                 final String option = options[i];
@@ -195,21 +210,75 @@ public class HomeGUI extends JFrame {
             setVisible(true);
         }
 
-        // Método para cambiar entre modo claro y oscuro
-        private void toggleTheme() {
-            if (isDarkMode) {
-                sidebar.setBackground(new Color(173, 216, 230)); // Azul pastel
-                contentPanel.setBackground(Color.WHITE);
-                toggleThemeButton.setText("Modo Oscuro");
-                searchField.setBackground(Color.WHITE);
-            } else {
-                sidebar.setBackground(new Color(51, 51, 51)); // Gris oscuro
-                contentPanel.setBackground(new Color(34, 34, 34)); // Gris más oscuro
-                toggleThemeButton.setText("Modo Claro");
-                searchField.setBackground(new Color(70, 70, 70)); // Fondo de búsqueda oscuro
-            }
-            isDarkMode = !isDarkMode;
-        }
+//        // Método para cambiar entre modo claro y oscuro
+//        private void toggleTheme() {
+//            Color sidebarBackground, contentBackground, buttonBackground, textColor, searchFieldBackground, headerBackground;
+//
+//            if (isDarkMode) {
+//                // Colores para modo claro
+//                sidebarBackground = new Color(153, 204, 153); // Verde pastel claro
+//                contentBackground = Color.WHITE;
+//                buttonBackground = new Color(102, 153, 102); // Verde medio
+//                headerBackground = new Color(25, 117, 11); // Verde principal
+//                textColor = Color.BLACK;
+//                searchFieldBackground = Color.WHITE;
+//                toggleThemeButton.setText("Modo Oscuro");
+//            } else {
+//                // Colores para modo oscuro
+//                sidebarBackground = new Color(25, 77, 11); // Verde oscuro
+//                contentBackground = new Color(8, 41, 7); // Verde más oscuro
+//                buttonBackground = new Color(25, 117, 11); // Verde principal para los botones
+//                headerBackground = new Color(25, 117, 11); // Mismo verde para el header
+//                textColor = Color.WHITE;
+//                searchFieldBackground = new Color(25, 77, 11); // Verde oscuro para el campo de búsqueda
+//                toggleThemeButton.setText("Modo Claro");
+//            }
+//
+//            // Cambiar color del sidebar
+//            sidebar.setBackground(sidebarBackground);
+//
+//            // Cambiar color del contenido
+//            contentPanel.setBackground(contentBackground);
+//
+//            // Cambiar color del header
+//            headerPanel.setBackground(headerBackground);
+//
+//            // Cambiar color de los botones del sidebar
+//            for (Component component : sidebar.getComponents()) {
+//                if (component instanceof JButton) {
+//                    component.setBackground(buttonBackground);
+//                    component.setForeground(textColor); // Color del texto
+//                }
+//            }
+//
+//            // Cambiar color de los botones del header
+//            searchButton.setBackground(buttonBackground);
+//            searchButton.setForeground(textColor); // Color de la lupa
+//
+//            toggleThemeButton.setBackground(buttonBackground);
+//            toggleThemeButton.setForeground(textColor);
+//
+//            logoutButton.setBackground(buttonBackground);
+//            logoutButton.setForeground(textColor);
+//
+//            // Cambiar el color del campo de búsqueda
+//            searchField.setBackground(searchFieldBackground);
+//            searchField.setForeground(textColor); // Color del texto del campo de búsqueda
+//
+//            // Cambiar colores del texto del contentPanel (por ejemplo, en el label "Hipervet")
+//            for (Component component : contentPanel.getComponents()) {
+//                if (component instanceof JPanel) {
+//                    for (Component subComponent : ((JPanel) component).getComponents()) {
+//                        if (subComponent instanceof JLabel) {
+//                            subComponent.setForeground(textColor); // Cambiar el color del texto del JLabel
+//                        }
+//                    }
+//                }
+//            }
+//
+//            // Alternar el estado del modo oscuro
+//            isDarkMode = !isDarkMode;
+//        }
 
         // Método para cerrar sesión y volver al formulario de login
         private void logout() {
@@ -224,4 +293,6 @@ public class HomeGUI extends JFrame {
             new HomeGUI();
         }
 }
+
+
 
